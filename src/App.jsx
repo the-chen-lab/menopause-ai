@@ -1,22 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Search, ArrowRight, Github, Mail, Send, ExternalLink, Menu, X } from 'lucide-react';
-
-// ─── PALETTE ──────────────────────────────────────────────────────────────────
-const C = {
-  navy: '#003865',
-  navyDark: '#002347',
-  navyLight: '#e8f0f8',
-  gold: '#b5922a',
-  goldLight: '#fdf8ed',
-  teal: '#1a6b6b',
-  tealLight: '#e6f4f4',
-  text: '#1a1a1a',
-  muted: '#556070',
-  mutedLight: '#8a99a8',
-  bg: '#fff',
-  cream: '#faf7f1',
-  border: '#d4cec7',
-};
+import { useState, useEffect, useRef } from 'react';
+import {
+  Search, ArrowRight, Github, Mail, Send, ExternalLink,
+  Menu, X, ArrowUpRight, ChevronDown, ChevronUp,
+} from 'lucide-react';
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -346,7 +332,6 @@ const BLOG_POSTS = [
 // ─── ARXIV ────────────────────────────────────────────────────────────────────
 
 async function fetchArxiv(query) {
-  // Each space-separated word must be explicitly ANDed; bare spaces in ArXiv fields act as OR
   const terms = query.trim().split(/\s+/).filter(Boolean);
   const arxivQ = terms.map(t => `all:${t}`).join(' AND ');
   const url = `/arxiv/api/query?search_query=${encodeURIComponent(arxivQ)}&sortBy=submittedDate&sortOrder=descending&max_results=15`;
@@ -358,117 +343,144 @@ async function fetchArxiv(query) {
   return [...doc.querySelectorAll('entry')].map(e => ({
     id: e.querySelector('id')?.textContent?.trim(),
     title: e.querySelector('title')?.textContent?.replace(/\s+/g, ' ').trim(),
-    authors: [...e.querySelectorAll('author name')]
-      .map(a => a.textContent.trim())
-      .slice(0, 5)
-      .join(', '),
+    authors: [...e.querySelectorAll('author name')].map(a => a.textContent.trim()).slice(0, 5).join(', '),
     summary: e.querySelector('summary')?.textContent?.replace(/\s+/g, ' ').trim(),
     published: e.querySelector('published')?.textContent?.slice(0, 10),
-    categories: [...e.querySelectorAll('category')]
-      .map(c => c.getAttribute('term'))
-      .filter(Boolean)
-      .slice(0, 3)
-      .join(' · '),
+    categories: [...e.querySelectorAll('category')].map(c => c.getAttribute('term')).filter(Boolean).slice(0, 3).join(' · '),
     link: e.querySelector('id')?.textContent?.trim(),
   }));
 }
 
+// ─── HOOKS ────────────────────────────────────────────────────────────────────
+
+function useReveal() {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible];
+}
+
+function Reveal({ children, delay = 0, className = '' }) {
+  const [ref, visible] = useReveal();
+  return (
+    <div ref={ref} className={className} style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'none' : 'translateY(24px)',
+      transition: `opacity 0.6s ease-out ${delay}ms, transform 0.6s ease-out ${delay}ms`,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function CountUp({ end }) {
+  const [val, setVal] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const steps = 55;
+        let step = 0;
+        const id = setInterval(() => {
+          step++;
+          const progress = step / steps;
+          const eased = 1 - Math.pow(1 - progress, 3);
+          setVal(Math.round(end * eased));
+          if (step >= steps) { setVal(end); clearInterval(id); }
+        }, 1800 / steps);
+        obs.disconnect();
+      }
+    }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [end]);
+  return <span ref={ref}>{val}</span>;
+}
+
 // ─── SHARED COMPONENTS ────────────────────────────────────────────────────────
 
+const TAG_VARIANTS = {
+  area:     'bg-violet-50 text-violet-700 border border-violet-200',
+  method:   'bg-amber-50 text-amber-700 border border-amber-200',
+  data:     'bg-slate-100 text-slate-600 border border-slate-200',
+  code:     'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  postType: 'bg-sky-50 text-sky-700 border border-sky-200',
+  default:  'bg-slate-100 text-slate-600 border border-slate-200',
+};
+
 function Tag({ label, variant = 'default' }) {
-  const styles = {
-    area: { color: C.navy, borderColor: '#9ab3cf', background: C.navyLight },
-    method: { color: '#7a5c00', borderColor: '#d4b46a', background: C.goldLight },
-    data: { color: C.muted, borderColor: C.border, background: C.cream },
-    code: { color: '#166534', borderColor: '#86efac', background: '#f0fdf4' },
-    postType: { color: C.teal, borderColor: '#9dd4d4', background: C.tealLight },
-    default: { color: C.muted, borderColor: C.border, background: '#fff' },
-  };
-  const s = styles[variant] || styles.default;
+  const cls = TAG_VARIANTS[variant] || TAG_VARIANTS.default;
   return (
-    <span style={{
-      display: 'inline-block',
-      fontSize: '11px',
-      fontWeight: 'bold',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      padding: '2px 7px',
-      border: `1px solid ${s.borderColor}`,
-      color: s.color,
-      background: s.background,
-      whiteSpace: 'nowrap',
-    }}>
+    <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${cls}`}>
       {label}
     </span>
   );
 }
 
-function AccessTag({ type }) {
-  const colors = {
-    Open: { color: '#166534', border: '#86efac', bg: '#f0fdf4' },
-    'Application Required': { color: '#92400e', border: '#fcd34d', bg: '#fffbeb' },
-    Restricted: { color: '#991b1b', border: '#fca5a5', bg: '#fef2f2' },
+function AccessBadge({ type }) {
+  const map = {
+    Open: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    'Application Required': 'bg-amber-50 text-amber-700 border border-amber-200',
+    Restricted: 'bg-red-50 text-red-700 border border-red-200',
   };
-  const s = colors[type] || colors['Application Required'];
   return (
-    <span style={{
-      display: 'inline-block',
-      fontSize: '11px',
-      fontWeight: 'bold',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      padding: '2px 7px',
-      border: `1px solid ${s.border}`,
-      color: s.color,
-      background: s.bg,
-      whiteSpace: 'nowrap',
-    }}>
+    <span className={`inline-flex text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${map[type] || map['Application Required']}`}>
       {type}
     </span>
   );
 }
 
-function SectionLabel({ children }) {
+function SectionEyebrow({ children, light = false }) {
   return (
-    <p style={{
-      fontSize: '11px',
-      fontWeight: 'bold',
-      textTransform: 'uppercase',
-      letterSpacing: '0.12em',
-      color: C.gold,
-      marginBottom: '8px',
-    }}>
+    <p className={`text-xs font-bold uppercase tracking-[0.18em] mb-3 ${light ? 'text-violet-300' : 'text-violet-600'}`}>
       {children}
     </p>
   );
 }
 
-function Divider() {
-  return <hr style={{ border: 'none', borderTop: `1px solid ${C.border}`, margin: 0 }} />;
+function PageHeader({ eyebrow, title, desc }) {
+  return (
+    <div className="pt-16 relative bg-ink overflow-hidden">
+      <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-violet-600/20 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 w-56 h-56 rounded-full bg-rose-500/10 blur-3xl pointer-events-none" />
+      <div className="line-grid absolute inset-0 pointer-events-none" />
+      <div className="relative max-w-7xl mx-auto px-6 py-14">
+        <SectionEyebrow light>{eyebrow}</SectionEyebrow>
+        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">{title}</h1>
+        {desc && <p className="text-base text-slate-400 max-w-xl leading-relaxed">{desc}</p>}
+      </div>
+    </div>
+  );
 }
 
 function PaperCard({ paper }) {
   return (
-    <div style={{ padding: '22px', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+    <div className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-3 card-lift h-full">
+      <div className="flex flex-wrap gap-1.5">
         <Tag label={paper.area} variant="area" />
         <Tag label={paper.method} variant="method" />
         <Tag label={paper.dataType} variant="data" />
-        {paper.hasCode && <Tag label="Code" variant="code" />}
+        {paper.hasCode && <Tag label="Code Available" variant="code" />}
       </div>
-      <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: C.navy, lineHeight: 1.4, margin: 0 }}>
-        {paper.title}
-      </h3>
-      <p style={{ fontSize: '12px', color: C.muted, margin: 0 }}>
-        {paper.authors} &middot; <em>{paper.journal}</em> &middot; {paper.year}
-      </p>
-      <p style={{ fontSize: '13px', color: '#3a3a3a', lineHeight: 1.65, margin: 0, flex: 1 }}>
-        {paper.summary}
-      </p>
-      <a href="#" style={{ color: C.teal, fontSize: '13px', textDecoration: 'none', marginTop: 'auto' }}
-        onClick={e => e.preventDefault()}>
-        Read paper →
-      </a>
+      <h3 className="text-sm font-bold text-slate-900 leading-snug">{paper.title}</h3>
+      <p className="text-xs text-slate-500">{paper.authors} · <em>{paper.journal}</em> · {paper.year}</p>
+      <p className="text-sm text-slate-600 leading-relaxed flex-1">{paper.summary}</p>
+      <button className="mt-auto text-sm text-violet-600 font-semibold hover:text-violet-800 transition-colors text-left flex items-center gap-1">
+        Read paper <ArrowUpRight size={13} />
+      </button>
     </div>
   );
 }
@@ -486,36 +498,46 @@ const NAV_LINKS = [
 ];
 
 function Nav({ currentPage, setCurrentPage }) {
+  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const onHero = currentPage === 'home';
+  const transparent = onHero && !scrolled;
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 72);
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
+
   return (
-    <nav style={{ backgroundColor: C.navy, position: 'sticky', top: 0, zIndex: 50 }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '54px' }}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      transparent
+        ? 'bg-transparent border-b border-transparent'
+        : 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm'
+    }`}>
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
           <button
             onClick={() => { setCurrentPage('home'); setOpen(false); }}
-            style={{ fontWeight: 'bold', fontSize: '15px', color: '#fff', background: 'none', border: 'none', padding: 0, letterSpacing: '0.01em', fontFamily: 'Georgia, serif' }}
+            className={`text-base font-black tracking-tight transition-colors ${transparent ? 'text-white' : 'text-slate-900'}`}
           >
-            Menopause AI Initiative
+            Menopause<span className="text-violet-500">AI</span>
           </button>
 
-          <div className="hidden md:flex" style={{ gap: '0' }}>
+          <div className="hidden md:flex items-center gap-0.5">
             {NAV_LINKS.map(link => (
               <button
                 key={link.id}
                 onClick={() => setCurrentPage(link.id)}
-                style={{
-                  fontSize: '13px',
-                  padding: '6px 11px',
-                  background: 'none',
-                  border: 'none',
-                  color: currentPage === link.id ? '#fff' : 'rgba(255,255,255,0.7)',
-                  borderBottom: currentPage === link.id ? `2px solid ${C.gold}` : '2px solid transparent',
-                  fontFamily: 'Georgia, serif',
-                  fontWeight: currentPage === link.id ? 'bold' : 'normal',
-                  transition: 'color 0.15s',
-                }}
-                onMouseEnter={e => { if (currentPage !== link.id) e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { if (currentPage !== link.id) e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+                className={`text-sm px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  currentPage === link.id
+                    ? transparent
+                      ? 'text-white bg-white/15 font-semibold'
+                      : 'text-violet-600 bg-violet-50 font-semibold'
+                    : transparent
+                      ? 'text-white/70 hover:text-white hover:bg-white/10'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 {link.label}
               </button>
@@ -523,19 +545,24 @@ function Nav({ currentPage, setCurrentPage }) {
           </div>
 
           <button
-            className="md:hidden"
-            style={{ background: 'none', border: 'none', color: '#fff', padding: '4px' }}
+            className={`md:hidden p-2 rounded-lg transition-colors ${transparent ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
             onClick={() => setOpen(o => !o)}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
+
       {open && (
-        <div className="md:hidden" style={{ borderTop: '1px solid rgba(255,255,255,0.15)', backgroundColor: C.navyDark }}>
+        <div className="md:hidden bg-white/98 backdrop-blur-md border-t border-slate-100 shadow-lg">
           {NAV_LINKS.map(link => (
-            <button key={link.id} onClick={() => { setCurrentPage(link.id); setOpen(false); }}
-              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '12px 24px', background: 'none', border: 'none', fontSize: '14px', color: currentPage === link.id ? C.gold : '#fff', fontFamily: 'Georgia, serif', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <button
+              key={link.id}
+              onClick={() => { setCurrentPage(link.id); setOpen(false); }}
+              className={`block w-full text-left px-6 py-4 text-sm font-medium border-b border-slate-100 transition-colors ${
+                currentPage === link.id ? 'text-violet-600 bg-violet-50' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
               {link.label}
             </button>
           ))}
@@ -549,145 +576,232 @@ function Nav({ currentPage, setCurrentPage }) {
 
 function Footer({ setCurrentPage }) {
   return (
-    <footer style={{ backgroundColor: C.navy, marginTop: '0', color: 'rgba(255,255,255,0.75)' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '48px 24px 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '36px', marginBottom: '40px' }}>
-          <div>
-            <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#fff', marginBottom: '10px', fontFamily: 'Georgia, serif' }}>
-              Menopause AI Initiative
+    <footer className="bg-ink text-slate-400">
+      <div className="max-w-7xl mx-auto px-6 pt-16 pb-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          <div className="md:col-span-2">
+            <p className="font-black text-white text-lg mb-3 tracking-tight">
+              Menopause<span className="text-violet-400">AI</span>
             </p>
-            <p style={{ fontSize: '13px', lineHeight: 1.65 }}>
+            <p className="text-sm leading-relaxed max-w-xs text-slate-400">
               An open research commons advancing AI and ML applied to menopause science — with equity at the center.
             </p>
+            <div className="flex gap-5 mt-5">
+              {['GitHub', 'Twitter/X', 'LinkedIn'].map(s => (
+                <a key={s} href="#" className="text-sm text-slate-500 hover:text-violet-400 transition-colors">{s}</a>
+              ))}
+            </div>
           </div>
           <div>
-            <p style={{ fontWeight: 'bold', fontSize: '11px', color: C.gold, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Explore</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-400 mb-4">Explore</p>
+            <div className="flex flex-col gap-2.5">
               {NAV_LINKS.slice(1).map(l => (
                 <button key={l.id} onClick={() => setCurrentPage(l.id)}
-                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', padding: 0, textAlign: 'left', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
+                  className="text-sm text-left text-slate-500 hover:text-white transition-colors">
                   {l.label}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <p style={{ fontWeight: 'bold', fontSize: '11px', color: C.gold, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Contact</p>
-            <p style={{ fontSize: '13px' }}>menopauseai@research.edu</p>
-            <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
-              {['GitHub', 'Twitter/X', 'LinkedIn'].map(s => (
-                <a key={s} href="#" style={{ fontSize: '12px', color: C.gold }}>{s}</a>
-              ))}
-            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-400 mb-4">Contact</p>
+            <p className="text-sm">menopauseai@research.edu</p>
           </div>
         </div>
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-          <span style={{ fontSize: '12px' }}>© 2026 Menopause AI Initiative. Not a clinical service.</span>
-          <span style={{ fontSize: '12px' }}>Open research · Committed to equity</span>
+        <div className="border-t border-white/10 pt-8 flex flex-wrap justify-between gap-3 text-xs text-slate-600">
+          <span>© 2026 Menopause AI Initiative. Not a clinical service.</span>
+          <span>Open research · Committed to equity</span>
         </div>
       </div>
     </footer>
   );
 }
 
-// ─── PAGE 1: HOME ─────────────────────────────────────────────────────────────
+// ─── HOME ─────────────────────────────────────────────────────────────────────
 
 function HomePage({ setCurrentPage }) {
-  const stats = [
-    { n: '47M', label: 'US women experiencing the menopause transition annually' },
-    { n: '80%', label: 'report symptoms that meaningfully affect quality of life' },
-    { n: '<5%', label: 'of NIH funding historically directed to menopause research' },
+  const heroStats = [
+    { n: '10+', label: 'Curated Papers' },
+    { n: '6', label: 'Research Areas' },
+    { n: '6', label: 'Key Datasets' },
+    { n: '4', label: 'Open Tools' },
+  ];
+
+  const impactStats = [
+    { value: 47, suffix: 'M', label: 'US women experiencing the menopause transition annually' },
+    { value: 80, suffix: '%', label: 'report symptoms that meaningfully affect quality of life' },
+    { prefix: '<', value: 5, suffix: '%', label: 'of NIH funding historically directed to menopause research' },
   ];
 
   return (
     <div>
       {/* HERO */}
-      <section style={{ backgroundColor: C.navy, padding: '64px 24px 56px', borderBottom: `4px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <p style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.12em', color: C.gold, marginBottom: '16px' }}>
-            Menopause AI Initiative
-          </p>
-          <h1 style={{ fontSize: '2.5rem', lineHeight: 1.2, color: '#fff', marginBottom: '18px' }}>
-            Advancing Menopause Science<br />with Artificial Intelligence
+      <section className="relative min-h-[93vh] flex items-center overflow-hidden bg-ink">
+        <div className="absolute top-1/4 -left-12 w-[560px] h-[560px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-0 w-[440px] h-[440px] bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-2/3 left-1/2 w-[300px] h-[300px] bg-blue-500/8 rounded-full blur-[100px] pointer-events-none" />
+        <div className="line-grid absolute inset-0 pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32">
+          <div className="inline-flex items-center gap-2.5 bg-violet-500/10 border border-violet-500/25 text-violet-300 text-xs font-semibold px-4 py-2 rounded-full mb-8">
+            <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse" />
+            Open Research Commons · Est. 2026
+          </div>
+
+          <h1 className="text-5xl sm:text-6xl md:text-[76px] font-black text-white leading-[1.03] mb-6 tracking-tight max-w-4xl">
+            AI Research for<br />
+            <span className="text-gradient">Menopause Science</span>
           </h1>
-          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.78)', lineHeight: 1.7, marginBottom: '32px', maxWidth: '580px' }}>
-            A catalog of AI and ML research applied to perimenopause and menopause — organized by research area, dataset, and method, with equity at the center.
+
+          <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
+            A catalog of machine learning and AI research applied to perimenopause and menopause — organized by research area, dataset, and method, with equity at the center.
           </p>
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            <button onClick={() => setCurrentPage('areas')}
-              style={{ fontSize: '14px', color: C.navy, backgroundColor: C.gold, border: 'none', padding: '9px 20px', fontFamily: 'Georgia, serif', fontWeight: 'bold', cursor: 'pointer' }}>
-              Explore the Research →
+
+          <div className="flex flex-wrap gap-4 mb-20">
+            <button
+              onClick={() => setCurrentPage('areas')}
+              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 hover:shadow-xl hover:shadow-violet-500/25 hover:-translate-y-0.5"
+            >
+              Explore Research <ArrowRight size={16} />
             </button>
-            <button onClick={() => setCurrentPage('about')}
-              style={{ fontSize: '14px', color: '#fff', backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.45)', padding: '9px 20px', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
+            <button
+              onClick={() => setCurrentPage('about')}
+              className="inline-flex items-center gap-2 border border-white/20 hover:border-white/50 hover:bg-white/5 text-white px-7 py-3.5 rounded-xl transition-all duration-200"
+            >
               About the Initiative
             </button>
           </div>
-        </div>
-      </section>
 
-      {/* STATS */}
-      <section style={{ backgroundColor: C.cream, borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-          {stats.map((s, i) => (
-            <div key={i} style={{ padding: '28px 32px', borderRight: i < stats.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-              <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: C.navy, marginBottom: '5px' }}>{s.n}</div>
-              <div style={{ fontSize: '13px', color: C.muted, lineHeight: 1.5 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FEATURED PAPERS */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '20px' }}>
-          <div>
-            <SectionLabel>Featured Research</SectionLabel>
-            <h2 style={{ fontSize: '1.5rem', color: C.navy, margin: 0 }}>Recent Highlights</h2>
+          <div className="flex flex-wrap gap-x-8 gap-y-4 pt-8 border-t border-white/10">
+            {heroStats.map((s, i) => (
+              <div key={i} className="text-center">
+                <div className="text-2xl font-black text-white">{s.n}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
+              </div>
+            ))}
           </div>
-          <button onClick={() => setCurrentPage('papers')}
-            style={{ fontSize: '13px', color: C.teal, background: 'none', border: 'none', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
-            View all papers →
-          </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', border: `1px solid ${C.border}` }}>
-          {PAPERS_DATA.slice(0, 3).map((paper, i) => (
-            <div key={paper.id} style={{ borderRight: i < 2 ? `1px solid ${C.border}` : 'none' }}>
-              <PaperCard paper={paper} />
-            </div>
-          ))}
+      </section>
+
+      {/* IMPACT STATS */}
+      <section className="bg-slate-950 border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
+            {impactStats.map((s, i) => (
+              <Reveal key={i} delay={i * 130}>
+                <div className="text-center px-8 py-8 md:py-4">
+                  <div className="text-5xl md:text-6xl font-black text-white mb-3 tracking-tight">
+                    {s.prefix && <span className="text-violet-400">{s.prefix}</span>}
+                    <CountUp end={s.value} />
+                    <span className="text-violet-400">{s.suffix}</span>
+                  </div>
+                  <p className="text-slate-400 text-sm max-w-xs mx-auto leading-relaxed">{s.label}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* RESEARCH AREAS */}
-      <section style={{ backgroundColor: C.navyLight, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '20px' }}>
-            <div>
-              <SectionLabel>Research Areas</SectionLabel>
-              <h2 style={{ fontSize: '1.5rem', color: C.navy, margin: 0 }}>Six Research Frontiers</h2>
-            </div>
-            <button onClick={() => setCurrentPage('areas')}
-              style={{ fontSize: '13px', color: C.teal, background: 'none', border: 'none', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
-              Explore all →
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1px', backgroundColor: C.border }}>
-            {AREAS.map(area => (
-              <button key={area.id} onClick={() => setCurrentPage('areas')}
-                style={{ backgroundColor: '#fff', padding: '22px', textAlign: 'left', border: 'none', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: C.navy, marginBottom: '7px' }}>{area.name}</h3>
-                <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.55, margin: 0 }}>{area.short}</p>
+      <section className="bg-white py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-12">
+              <div>
+                <SectionEyebrow>Research Areas</SectionEyebrow>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Six Research Frontiers</h2>
+                <p className="mt-3 text-slate-500 max-w-xl leading-relaxed">
+                  Each area represents a distinct scientific challenge with its own methodology, data needs, and equity considerations.
+                </p>
+              </div>
+              <button onClick={() => setCurrentPage('areas')}
+                className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors">
+                View all <ArrowRight size={14} />
               </button>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {AREAS.map((area, i) => (
+              <Reveal key={area.id} delay={i * 70}>
+                <button
+                  onClick={() => setCurrentPage('areas')}
+                  className="group w-full text-left bg-white border border-slate-200 rounded-2xl p-6 card-lift"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-sm font-black mb-4 group-hover:bg-violet-100 transition-colors">
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mb-2 leading-snug">{area.name}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed"
+                     style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {area.short}
+                  </p>
+                  <div className="mt-4 flex items-center gap-1 text-xs text-violet-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                    Explore <ArrowRight size={11} />
+                  </div>
+                </button>
+              </Reveal>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* FEATURED PAPERS */}
+      <section className="bg-slate-50 py-24 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-12">
+              <div>
+                <SectionEyebrow>Featured Research</SectionEyebrow>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Recent Highlights</h2>
+              </div>
+              <button onClick={() => setCurrentPage('papers')}
+                className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors">
+                All papers <ArrowRight size={14} />
+              </button>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {PAPERS_DATA.slice(0, 3).map((paper, i) => (
+              <Reveal key={paper.id} delay={i * 90}>
+                <PaperCard paper={paper} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-gradient-to-br from-violet-900 via-purple-900 to-violet-950 py-24 relative overflow-hidden">
+        <div className="absolute inset-0 dot-grid pointer-events-none" />
+        <Reveal>
+          <div className="relative max-w-3xl mx-auto px-6 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-300 mb-4">Get Involved</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-5 tracking-tight">
+              Help build the resource
+            </h2>
+            <p className="text-violet-200 text-lg mb-10 leading-relaxed max-w-xl mx-auto">
+              Submit papers, contribute datasets, or join our editorial board. Researchers, clinicians, and data scientists are all welcome.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <button onClick={() => setCurrentPage('involved')}
+                className="bg-white text-violet-700 font-bold px-8 py-3.5 rounded-xl hover:bg-violet-50 transition-colors hover:shadow-xl">
+                Get Involved
+              </button>
+              <button onClick={() => setCurrentPage('papers')}
+                className="border border-white/25 text-white px-8 py-3.5 rounded-xl hover:bg-white/10 transition-colors">
+                Browse Papers
+              </button>
+            </div>
+          </div>
+        </Reveal>
       </section>
     </div>
   );
 }
 
-// ─── PAGE 2: ABOUT ────────────────────────────────────────────────────────────
+// ─── ABOUT ────────────────────────────────────────────────────────────────────
 
 function AboutPage() {
   const team = [
@@ -696,164 +810,190 @@ function AboutPage() {
       name: 'Dr. Amara Osei-Bonsu',
       affiliation: 'Department of Biomedical Informatics · Stanford University',
       bio: 'Develops fairness-aware ML models for reproductive aging and hormonal transitions. PI of the PRISM menopause equity study; member of the All of Us Diversity Working Group.',
+      gradient: 'from-violet-500 to-purple-600',
     },
     {
       initials: 'LN',
       name: 'Dr. Linda Nguyen',
       affiliation: "Division of Women's Health · Brigham and Women's Hospital",
       bio: 'Gynecologist-epidemiologist specializing in hormonal transitions and clinical decision support. Leads the clinical validation arm of AI-based HRT personalization tools in the MGB system.',
+      gradient: 'from-rose-500 to-pink-600',
     },
     {
       initials: 'MW',
       name: 'Dr. Marcus Webb',
       affiliation: 'Bakar Computational Health Sciences Institute · UCSF',
       bio: 'Builds deep learning models for physiological signal processing applied to reproductive health. Created HotFlashNet and the MenoNLP toolkit; serves on the NEJM AI editorial board.',
+      gradient: 'from-sky-500 to-blue-600',
     },
+  ];
+
+  const scopeItems = [
+    'Prediction of menopause onset, timing, or hormonal trajectory',
+    'Symptom detection, classification, or unsupervised phenotyping',
+    'Post-menopausal risk stratification for cardiovascular, bone, or metabolic outcomes',
+    'NLP extraction of menopause-related phenotypes from clinical notes',
+    'AI-assisted treatment decision support for hormone therapy',
+    "Algorithmic fairness auditing of tools used in women's health",
   ];
 
   return (
     <div>
-      {/* Page header band */}
-      <div style={{ backgroundColor: C.navy, padding: '40px 24px 36px', borderBottom: `3px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <SectionLabel>About</SectionLabel>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: 0 }}>About the Initiative</h1>
-        </div>
-      </div>
+      <PageHeader eyebrow="About" title="About the Initiative" />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '56px 24px' }}>
+      <div className="max-w-7xl mx-auto px-6 py-20">
         {/* Mission */}
-        <div style={{ maxWidth: '740px', marginBottom: '60px' }}>
-          <h2 style={{ fontSize: '1.25rem', color: C.navy, marginBottom: '16px' }}>Mission</h2>
-          <p style={{ fontSize: '15px', lineHeight: 1.75, color: '#333', marginBottom: '14px' }}>
+        <Reveal className="max-w-3xl mb-20">
+          <SectionEyebrow>Mission</SectionEyebrow>
+          <h2 className="text-2xl font-extrabold text-slate-900 mb-5 tracking-tight">Why this exists</h2>
+          <p className="text-base text-slate-600 leading-relaxed mb-4">
             The Menopause AI Initiative is an open research hub dedicated to cataloging, connecting, and accelerating AI and machine learning research applied to perimenopause and menopause. We believe that women — particularly Black, Latina, and Asian women who have been historically excluded from menopause research — deserve science that reflects their biology, their lives, and their priorities.
           </p>
-          <p style={{ fontSize: '15px', lineHeight: 1.75, color: '#333' }}>
-            We are a research commons: indexing papers, surfacing open datasets and tools, and building a community of researchers committed to rigorous, equitable, and reproducible menopause AI science. The menopause transition is a window into women's cardiovascular, metabolic, neurological, and bone health for the second half of their lives.
+          <p className="text-base text-slate-600 leading-relaxed">
+            We are a research commons: indexing papers, surfacing open datasets and tools, and building a community of researchers committed to rigorous, equitable, and reproducible menopause AI science.
           </p>
-        </div>
+        </Reveal>
 
         {/* Team */}
-        <div style={{ marginBottom: '60px' }}>
-          <h2 style={{ fontSize: '1.25rem', color: C.navy, marginBottom: '20px' }}>Advisory & Editorial Board</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1px', border: `1px solid ${C.border}`, backgroundColor: C.border }}>
+        <div className="mb-20">
+          <Reveal>
+            <SectionEyebrow>People</SectionEyebrow>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight">Advisory & Editorial Board</h2>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {team.map((person, i) => (
-              <div key={i} style={{ backgroundColor: '#fff', padding: '28px' }}>
-                <div style={{
-                  width: '46px', height: '46px', backgroundColor: C.navy, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 'bold', fontSize: '15px', marginBottom: '14px',
-                }}>
-                  {person.initials}
+              <Reveal key={i} delay={i * 100}>
+                <div className="bg-white rounded-2xl border border-slate-200 p-7 card-lift">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${person.gradient} text-white flex items-center justify-center font-bold text-base mb-5 shadow-lg`}>
+                    {person.initials}
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mb-1">{person.name}</h3>
+                  <p className="text-xs text-violet-600 font-semibold mb-3 leading-snug">{person.affiliation}</p>
+                  <p className="text-sm text-slate-500 leading-relaxed">{person.bio}</p>
                 </div>
-                <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: C.navy, marginBottom: '4px' }}>{person.name}</h3>
-                <p style={{ fontSize: '12px', color: C.gold, fontWeight: 'bold', marginBottom: '10px' }}>{person.affiliation}</p>
-                <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.6 }}>{person.bio}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
 
         {/* Scope */}
-        <div style={{ borderLeft: `4px solid ${C.gold}`, paddingLeft: '24px', maxWidth: '740px', backgroundColor: C.goldLight, padding: '24px 24px 24px 28px', borderLeft: `4px solid ${C.gold}` }}>
-          <h3 style={{ fontSize: '1.1rem', color: C.navy, marginBottom: '12px' }}>What counts as "Menopause × AI"?</h3>
-          <p style={{ fontSize: '14px', color: '#333', lineHeight: 1.7, marginBottom: '12px' }}>
-            We index research that applies machine learning, statistical learning, or NLP to questions substantively about perimenopause, menopause, or post-menopausal health:
-          </p>
-          <ul style={{ paddingLeft: '18px', margin: '0 0 12px 0', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            {[
-              'Prediction of menopause onset, timing, or hormonal trajectory',
-              'Symptom detection, classification, or unsupervised phenotyping',
-              'Post-menopausal risk stratification for cardiovascular, bone, or metabolic outcomes',
-              'NLP extraction of menopause-related phenotypes from clinical notes',
-              'AI-assisted treatment decision support for hormone therapy',
-              'Algorithmic fairness auditing of tools used in women\'s health',
-            ].map((item, i) => (
-              <li key={i} style={{ fontSize: '14px', color: '#333', lineHeight: 1.6 }}>{item}</li>
-            ))}
-          </ul>
-          <p style={{ fontSize: '13px', color: C.muted, margin: 0 }}>
-            General women's health AI papers without menopause-specific findings, and clinical studies without an ML component, are outside scope.
-          </p>
-        </div>
+        <Reveal>
+          <div className="bg-violet-50 border border-violet-200 rounded-2xl p-8 max-w-3xl">
+            <SectionEyebrow>Scope</SectionEyebrow>
+            <h3 className="text-xl font-extrabold text-slate-900 mb-4 tracking-tight">
+              What counts as "Menopause × AI"?
+            </h3>
+            <p className="text-sm text-slate-600 leading-relaxed mb-5">
+              We index research that applies machine learning, statistical learning, or NLP to questions substantively about perimenopause, menopause, or post-menopausal health:
+            </p>
+            <ul className="flex flex-col gap-2.5 mb-5">
+              {scopeItems.map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
+                  <span className="mt-0.5 w-4 h-4 rounded-full bg-violet-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              General women's health AI papers without menopause-specific findings, and clinical studies without an ML component, are outside scope.
+            </p>
+          </div>
+        </Reveal>
       </div>
     </div>
   );
 }
 
-// ─── PAGE 3: RESEARCH AREAS ───────────────────────────────────────────────────
+// ─── RESEARCH AREAS ───────────────────────────────────────────────────────────
 
 function ResearchAreasPage({ setCurrentPage }) {
+  const [open, setOpen] = useState(null);
+
   return (
     <div>
-      <div style={{ backgroundColor: C.navy, padding: '40px 24px 36px', borderBottom: `3px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <SectionLabel>Research Areas</SectionLabel>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: '0 0 8px 0' }}>Six Research Frontiers</h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.72)', margin: 0, maxWidth: '600px' }}>
-            Each area represents a distinct scientific challenge with its own data requirements, methodological landscape, and equity considerations.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Research Areas"
+        title="Six Research Frontiers"
+        desc="Each area represents a distinct scientific challenge with its own data requirements, methodological landscape, and equity considerations."
+      />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '48px 24px' }}>
-        <div style={{ border: `1px solid ${C.border}` }}>
-          {AREAS.map((area, i) => (
-            <div key={area.id} style={{ padding: '36px', borderBottom: i < AREAS.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-              <h2 style={{ fontSize: '1.25rem', color: C.navy, marginBottom: '12px' }}>{area.name}</h2>
-              <p style={{ fontSize: '14px', color: '#333', lineHeight: 1.7, marginBottom: '20px', maxWidth: '840px' }}>
-                {area.overview}
-              </p>
-              <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.07em', color: C.gold, marginBottom: '8px' }}>
-                  Open Challenges
-                </p>
-                <ul style={{ paddingLeft: '18px', margin: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  {area.challenges.map((c, j) => (
-                    <li key={j} style={{ fontSize: '13px', color: '#444', lineHeight: 1.6 }}>{c}</li>
-                  ))}
-                </ul>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.07em', color: C.muted }}>Papers:</span>
-                {area.papers.map((p, j) => (
-                  <button key={j} onClick={() => setCurrentPage('papers')}
-                    style={{ fontSize: '12px', color: C.teal, background: 'none', border: 'none', padding: 0, fontFamily: 'Georgia, serif', textDecoration: 'underline', cursor: 'pointer' }}>
-                    {p}
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="flex flex-col gap-3">
+          {AREAS.map((area, i) => {
+            const isOpen = open === area.id;
+            return (
+              <Reveal key={area.id} delay={i * 50}>
+                <div className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                  isOpen ? 'border-violet-300 shadow-lg shadow-violet-500/10' : 'border-slate-200 hover:border-violet-200'
+                }`}>
+                  <button
+                    onClick={() => setOpen(isOpen ? null : area.id)}
+                    className="w-full flex items-center justify-between gap-4 px-7 py-5 text-left bg-white hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0 transition-colors ${
+                        isOpen ? 'bg-violet-600 text-white' : 'bg-violet-50 text-violet-600'
+                      }`}>{String(i + 1).padStart(2, '0')}</span>
+                      <span className="text-base font-bold text-slate-900">{area.name}</span>
+                    </div>
+                    {isOpen ? <ChevronUp size={18} className="text-violet-500 flex-shrink-0" /> : <ChevronDown size={18} className="text-slate-400 flex-shrink-0" />}
                   </button>
-                ))}
-              </div>
-            </div>
-          ))}
+
+                  {isOpen && (
+                    <div className="px-7 pb-7 bg-white border-t border-slate-100">
+                      <p className="text-sm text-slate-600 leading-relaxed mb-5 mt-5 max-w-3xl">{area.overview}</p>
+                      <div className="mb-5">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-600 mb-3">Open Challenges</p>
+                        <ul className="flex flex-col gap-2">
+                          {area.challenges.map((c, j) => (
+                            <li key={j} className="flex items-start gap-2.5 text-sm text-slate-600">
+                              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Related papers:</span>
+                        {area.papers.map((p, j) => (
+                          <button key={j} onClick={() => setCurrentPage('papers')}
+                            className="text-xs text-violet-600 font-semibold hover:text-violet-800 underline underline-offset-2 transition-colors">
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── PAGE 4: PAPERS ───────────────────────────────────────────────────────────
+// ─── PAPERS ───────────────────────────────────────────────────────────────────
 
 function ArxivCard({ paper }) {
-  const year = paper.published?.slice(0, 4);
   return (
-    <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center' }}>
+    <div className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-3 card-lift">
+      <div className="flex flex-wrap gap-1.5 items-center">
         {paper.categories.split(' · ').slice(0, 3).map(cat => (
           <Tag key={cat} label={cat} variant="method" />
         ))}
-        <span style={{ fontSize: '11px', color: C.mutedLight, marginLeft: '4px' }}>{paper.published}</span>
+        <span className="text-xs text-slate-400 ml-1">{paper.published}</span>
       </div>
-      <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: C.navy, lineHeight: 1.4, margin: 0 }}>
-        {paper.title}
-      </h3>
-      <p style={{ fontSize: '12px', color: C.muted, margin: 0 }}>{paper.authors}{year ? ` · ${year}` : ''}</p>
-      <p style={{ fontSize: '13px', color: '#3a3a3a', lineHeight: 1.65, margin: 0 }}>
+      <h3 className="text-sm font-bold text-slate-900 leading-snug">{paper.title}</h3>
+      <p className="text-xs text-slate-500">{paper.authors}</p>
+      <p className="text-sm text-slate-600 leading-relaxed flex-1">
         {paper.summary?.length > 360 ? paper.summary.slice(0, 360) + '…' : paper.summary}
       </p>
       {paper.link && (
         <a href={paper.link} target="_blank" rel="noreferrer"
-          style={{ color: C.teal, fontSize: '13px', textDecoration: 'none', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          View on ArXiv <ExternalLink size={11} />
+          className="text-sm text-violet-600 font-semibold hover:text-violet-800 flex items-center gap-1 mt-auto transition-colors">
+          View on ArXiv <ExternalLink size={12} />
         </a>
       )}
     </div>
@@ -865,7 +1005,7 @@ function ArxivSearch() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [searched, setSearched] = useState(false);
 
   async function doSearch(e) {
     e?.preventDefault();
@@ -875,7 +1015,7 @@ function ArxivSearch() {
     try {
       const papers = await fetchArxiv(query.trim());
       setResults(papers);
-      setHasSearched(true);
+      setSearched(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -885,57 +1025,51 @@ function ArxivSearch() {
 
   return (
     <div>
-      <form onSubmit={doSearch} style={{ display: 'flex', gap: '0', marginBottom: '20px' }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: C.mutedLight }} />
+      <form onSubmit={doSearch} className="flex gap-0 mb-6">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="e.g. menopause machine learning hot flash detection"
-            style={{ width: '100%', padding: '9px 12px 9px 32px', fontSize: '13px', border: `1px solid ${C.border}`, borderRight: 'none', color: C.text, fontFamily: 'Georgia, serif', outline: 'none', boxSizing: 'border-box' }}
+            className="w-full pl-10 pr-4 py-3 text-sm border border-slate-200 border-r-0 rounded-l-xl outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all text-slate-900 placeholder-slate-400 bg-white"
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ padding: '9px 20px', fontSize: '13px', fontWeight: 'bold', backgroundColor: loading ? C.muted : C.navy, color: '#fff', border: 'none', fontFamily: 'Georgia, serif', cursor: loading ? 'default' : 'pointer', whiteSpace: 'nowrap' }}>
+        <button type="submit" disabled={loading}
+          className={`px-6 py-3 text-sm font-semibold text-white rounded-r-xl transition-colors ${loading ? 'bg-slate-400' : 'bg-violet-600 hover:bg-violet-500'}`}>
           {loading ? 'Searching…' : 'Search ArXiv'}
         </button>
       </form>
 
       {error && (
-        <div style={{ padding: '14px 16px', border: `1px solid #fca5a5`, backgroundColor: '#fef2f2', color: '#991b1b', fontSize: '13px', marginBottom: '16px' }}>
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm mb-5">
           Error: {error}. The ArXiv API may be temporarily unavailable.
         </div>
       )}
 
-      {hasSearched && !loading && (
-        <p style={{ fontSize: '13px', color: C.muted, marginBottom: '16px' }}>
+      {searched && !loading && (
+        <p className="text-sm text-slate-500 mb-4">
           {results.length} result{results.length !== 1 ? 's' : ''} for <em>"{query}"</em>
         </p>
       )}
 
       {results.length > 0 && (
-        <div style={{ border: `1px solid ${C.border}`, backgroundColor: C.border, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1px' }}>
-          {results.map(p => (
-            <div key={p.id} style={{ backgroundColor: '#fff' }}>
-              <ArxivCard paper={p} />
-            </div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {results.map(p => <ArxivCard key={p.id} paper={p} />)}
         </div>
       )}
 
-      {hasSearched && !loading && results.length === 0 && !error && (
-        <div style={{ padding: '48px', textAlign: 'center', border: `1px solid ${C.border}` }}>
-          <p style={{ color: C.muted }}>No results found. Try broader search terms.</p>
+      {searched && !loading && results.length === 0 && !error && (
+        <div className="py-16 text-center rounded-2xl border border-slate-200 bg-slate-50">
+          <p className="text-slate-500">No results found. Try broader search terms.</p>
         </div>
       )}
 
-      {!hasSearched && !loading && (
-        <div style={{ padding: '48px', textAlign: 'center', border: `1px solid ${C.border}`, backgroundColor: C.cream }}>
-          <p style={{ color: C.muted, fontSize: '14px' }}>Enter a search query above to pull live results from ArXiv.</p>
-          <p style={{ color: C.mutedLight, fontSize: '12px', marginTop: '6px' }}>Searches title, abstract, and full text across all arXiv categories.</p>
+      {!searched && !loading && (
+        <div className="py-16 text-center rounded-2xl border border-slate-200 bg-slate-50">
+          <p className="text-slate-500 text-sm">Enter a search query to pull live results from ArXiv.</p>
+          <p className="text-slate-400 text-xs mt-2">Searches title, abstract, and full text across all arXiv categories.</p>
         </div>
       )}
     </div>
@@ -947,106 +1081,89 @@ function PapersPage() {
   const [query, setQuery] = useState('');
   const [areaF, setAreaF] = useState('');
   const [methodF, setMethodF] = useState('');
-  const [dataF, setDataF] = useState('');
 
   const areaOptions = [...new Set(PAPERS_DATA.map(p => p.area))];
   const methodOptions = [...new Set(PAPERS_DATA.map(p => p.method))];
-  const dataOptions = [...new Set(PAPERS_DATA.map(p => p.dataType))];
 
   const filtered = PAPERS_DATA.filter(p => {
     if (areaF && p.area !== areaF) return false;
     if (methodF && p.method !== methodF) return false;
-    if (dataF && p.dataType !== dataF) return false;
     if (query && !p.title.toLowerCase().includes(query.toLowerCase()) && !p.authors.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
 
-  const hasFilter = query || areaF || methodF || dataF;
+  const hasFilter = query || areaF || methodF;
 
-  const filterStyle = {
-    fontSize: '13px', padding: '8px 10px', border: `1px solid ${C.border}`,
-    color: C.text, background: '#fff', fontFamily: 'Georgia, serif', outline: 'none',
-  };
-
-  const tabStyle = (active) => ({
-    fontSize: '13px', padding: '10px 18px', background: 'none', border: 'none',
-    borderBottom: active ? `2px solid ${C.gold}` : '2px solid transparent',
-    color: active ? C.navy : C.muted, fontFamily: 'Georgia, serif',
-    fontWeight: active ? 'bold' : 'normal', cursor: 'pointer', marginBottom: '-1px',
-  });
+  const selectCls = 'text-sm px-3 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 transition-all';
 
   return (
     <div>
-      <div style={{ backgroundColor: C.navy, padding: '40px 24px 36px', borderBottom: `3px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <SectionLabel>Papers</SectionLabel>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: '0 0 8px 0' }}>Research Papers</h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.72)', margin: 0, maxWidth: '600px' }}>
-            A curated index of AI and ML research applied to menopause science, plus live ArXiv search.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Papers"
+        title="Research Papers"
+        desc="A curated index of AI and ML research applied to menopause science, plus live ArXiv search."
+      />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+      <div className="max-w-7xl mx-auto px-6 py-12 pb-20">
         {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, marginBottom: '28px', paddingTop: '24px' }}>
-          <button style={tabStyle(tab === 'curated')} onClick={() => setTab('curated')}>
-            Curated Index ({PAPERS_DATA.length})
-          </button>
-          <button style={tabStyle(tab === 'arxiv')} onClick={() => setTab('arxiv')}>
-            Live ArXiv Search
-          </button>
+        <div className="flex gap-1 mb-8 bg-slate-100 p-1 rounded-xl w-fit">
+          {[['curated', `Curated Index (${PAPERS_DATA.length})`], ['arxiv', 'Live ArXiv Search']].map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)}
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                tab === id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}>
+              {label}
+            </button>
+          ))}
         </div>
 
         {tab === 'curated' && (
-          <div style={{ paddingBottom: '60px' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px', alignItems: 'center' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={13} style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: C.mutedLight }} />
-                <input type="text" placeholder="Search title or author…" value={query} onChange={e => setQuery(e.target.value)}
-                  style={{ ...filterStyle, paddingLeft: '28px', minWidth: '220px' }} />
+          <div>
+            <div className="flex flex-wrap gap-3 mb-5 items-center">
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input type="text" placeholder="Search title or author…" value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  className="pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 transition-all min-w-[220px]" />
               </div>
-              <select value={areaF} onChange={e => setAreaF(e.target.value)} style={{ ...filterStyle, minWidth: '160px' }}>
+              <select value={areaF} onChange={e => setAreaF(e.target.value)} className={selectCls}>
                 <option value="">All Areas</option>
                 {areaOptions.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
-              <select value={methodF} onChange={e => setMethodF(e.target.value)} style={{ ...filterStyle, minWidth: '140px' }}>
+              <select value={methodF} onChange={e => setMethodF(e.target.value)} className={selectCls}>
                 <option value="">All Methods</option>
                 {methodOptions.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
-              <select value={dataF} onChange={e => setDataF(e.target.value)} style={{ ...filterStyle, minWidth: '140px' }}>
-                <option value="">All Data Types</option>
-                {dataOptions.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
               {hasFilter && (
-                <button onClick={() => { setQuery(''); setAreaF(''); setMethodF(''); setDataF(''); }}
-                  style={{ ...filterStyle, cursor: 'pointer', color: C.muted }}>
+                <button onClick={() => { setQuery(''); setAreaF(''); setMethodF(''); }}
+                  className="px-3 py-2.5 text-sm text-slate-500 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors">
                   Clear ×
                 </button>
               )}
             </div>
-            <p style={{ fontSize: '13px', color: C.muted, marginBottom: '18px' }}>
-              {filtered.length} of {PAPERS_DATA.length} papers
-            </p>
+
+            <p className="text-sm text-slate-400 mb-5">{filtered.length} of {PAPERS_DATA.length} papers</p>
+
             {filtered.length > 0 ? (
-              <div style={{ border: `1px solid ${C.border}`, backgroundColor: C.border, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1px' }}>
-                {filtered.map(paper => (
-                  <div key={paper.id} style={{ backgroundColor: '#fff' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filtered.map((paper, i) => (
+                  <Reveal key={paper.id} delay={i * 40}>
                     <PaperCard paper={paper} />
-                  </div>
+                  </Reveal>
                 ))}
               </div>
             ) : (
-              <div style={{ padding: '60px', textAlign: 'center', border: `1px solid ${C.border}` }}>
-                <p style={{ color: C.muted }}>No papers match your filters.</p>
+              <div className="py-20 text-center rounded-2xl border border-slate-200">
+                <p className="text-slate-500">No papers match your filters.</p>
               </div>
             )}
-            <div style={{ marginTop: '40px', padding: '24px', backgroundColor: C.goldLight, border: `1px solid #e0d0a0`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+
+            <div className="mt-10 flex flex-wrap items-center justify-between gap-4 bg-violet-50 border border-violet-200 rounded-2xl px-8 py-6">
               <div>
-                <p style={{ fontWeight: 'bold', color: C.navy, margin: '0 0 4px 0' }}>Know a paper we're missing?</p>
-                <p style={{ fontSize: '13px', color: C.muted, margin: 0 }}>Submit any AI/ML + menopause paper for review and inclusion.</p>
+                <p className="font-bold text-slate-900 mb-1">Know a paper we're missing?</p>
+                <p className="text-sm text-slate-500">Submit any AI/ML + menopause paper for review and inclusion.</p>
               </div>
-              <button style={{ fontSize: '13px', color: '#fff', backgroundColor: C.navy, border: 'none', padding: '9px 18px', fontFamily: 'Georgia, serif', cursor: 'pointer', fontWeight: 'bold' }}>
+              <button className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
                 Submit a Paper →
               </button>
             </div>
@@ -1054,8 +1171,8 @@ function PapersPage() {
         )}
 
         {tab === 'arxiv' && (
-          <div style={{ paddingBottom: '60px' }}>
-            <p style={{ fontSize: '13px', color: C.muted, marginBottom: '20px', maxWidth: '680px', lineHeight: 1.6 }}>
+          <div>
+            <p className="text-sm text-slate-500 mb-6 max-w-xl leading-relaxed">
               Live search across the ArXiv preprint server. Results are fetched in real time — these are preprints and may not be peer-reviewed.
             </p>
             <ArxivSearch />
@@ -1066,55 +1183,64 @@ function PapersPage() {
   );
 }
 
-// ─── PAGE 5: DATA & TOOLS ─────────────────────────────────────────────────────
+// ─── DATA & TOOLS ─────────────────────────────────────────────────────────────
 
 function DataToolsPage() {
   return (
     <div>
-      <div style={{ backgroundColor: C.navy, padding: '40px 24px 36px', borderBottom: `3px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <SectionLabel>Data & Tools</SectionLabel>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: '0 0 8px 0' }}>Datasets & Open-Source Tools</h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.72)', margin: 0, maxWidth: '580px' }}>
-            Curated data resources and community-built toolkits for menopause AI research.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Data & Tools"
+        title="Datasets & Open-Source Tools"
+        desc="Curated data resources and community-built toolkits for menopause AI research."
+      />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '56px 24px' }}>
-        <section style={{ marginBottom: '56px' }}>
-          <h2 style={{ fontSize: '1.25rem', color: C.navy, marginBottom: '20px' }}>Key Datasets</h2>
-          <div style={{ border: `1px solid ${C.border}` }}>
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <section className="mb-16">
+          <Reveal>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight">Key Datasets</h2>
+          </Reveal>
+          <div className="flex flex-col gap-4">
             {DATASETS.map((ds, i) => (
-              <div key={i} style={{ padding: '24px 28px', borderBottom: i < DATASETS.length - 1 ? `1px solid ${C.border}` : 'none', backgroundColor: i % 2 === 0 ? '#fff' : C.cream }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: C.navy, margin: 0 }}>{ds.name}</h3>
-                  <AccessTag type={ds.access} />
+              <Reveal key={i} delay={i * 60}>
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 card-lift">
+                  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                    <h3 className="text-base font-bold text-slate-900">{ds.name}</h3>
+                    <AccessBadge type={ds.access} />
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4 max-w-3xl">{ds.description}</p>
+                  <div className="flex flex-wrap gap-6 text-sm text-slate-500">
+                    <span><span className="font-semibold text-slate-700">Scale:</span> {ds.scale}</span>
+                    <span><span className="font-semibold text-slate-700">Demographics:</span> {ds.demographics}</span>
+                  </div>
                 </div>
-                <p style={{ fontSize: '13px', color: '#333', lineHeight: 1.65, marginBottom: '10px', maxWidth: '720px' }}>{ds.description}</p>
-                <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '12px', color: C.muted }}><strong>Scale:</strong> {ds.scale}</span>
-                  <span style={{ fontSize: '12px', color: C.muted }}><strong>Demographics:</strong> {ds.demographics}</span>
-                </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
         <section>
-          <h2 style={{ fontSize: '1.25rem', color: C.navy, marginBottom: '20px' }}>Tools & Code Libraries</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1px', border: `1px solid ${C.border}`, backgroundColor: C.border }}>
+          <Reveal>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight">Tools & Code Libraries</h2>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {TOOLS.map((tool, i) => (
-              <div key={i} style={{ backgroundColor: '#fff', padding: '26px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '10px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: C.navy, margin: 0 }}>{tool.name}</h3>
-                  <Tag label="Open Source" variant="code" />
+              <Reveal key={i} delay={i * 80}>
+                <div className="bg-white rounded-2xl border border-slate-200 p-7 card-lift h-full">
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 mb-1">{tool.name}</h3>
+                      <Tag label="Open Source" variant="code" />
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center flex-shrink-0">
+                      <Github size={18} />
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-5">{tool.description}</p>
+                  <button className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all">
+                    <Github size={14} /> View on GitHub
+                  </button>
                 </div>
-                <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.65, marginBottom: '18px' }}>{tool.description}</p>
-                <button style={{ fontSize: '13px', color: C.text, border: `1px solid ${C.border}`, padding: '7px 14px', background: 'none', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <Github size={13} /> View on GitHub
-                </button>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -1123,56 +1249,66 @@ function DataToolsPage() {
   );
 }
 
-// ─── PAGE 6: BLOG ─────────────────────────────────────────────────────────────
+// ─── BLOG ─────────────────────────────────────────────────────────────────────
 
 const POST_TYPES = ['All', 'Paper Spotlight', 'Field Overview', 'Methods Explainer', 'Open Problem'];
 
+const POST_TYPE_COLORS = {
+  'Paper Spotlight': 'bg-violet-50 text-violet-700 border-violet-200',
+  'Field Overview': 'bg-sky-50 text-sky-700 border-sky-200',
+  'Methods Explainer': 'bg-amber-50 text-amber-700 border-amber-200',
+  'Open Problem': 'bg-rose-50 text-rose-700 border-rose-200',
+};
+
 function BlogPage() {
-  const [activeType, setActiveType] = useState('All');
-  const visible = activeType === 'All' ? BLOG_POSTS : BLOG_POSTS.filter(p => p.type === activeType);
+  const [active, setActive] = useState('All');
+  const visible = active === 'All' ? BLOG_POSTS : BLOG_POSTS.filter(p => p.type === active);
 
   return (
     <div>
-      <div style={{ backgroundColor: C.navy, padding: '40px 24px 36px', borderBottom: `3px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <SectionLabel>Blog</SectionLabel>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: '0 0 8px 0' }}>Research Perspectives</h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.72)', margin: 0 }}>
-            Paper spotlights, field overviews, methods explainers, and open problems.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Blog"
+        title="Research Perspectives"
+        desc="Paper spotlights, field overviews, methods explainers, and open problems."
+      />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px 60px' }}>
-        <div style={{ display: 'flex', gap: '0', borderBottom: `1px solid ${C.border}`, marginBottom: '32px', flexWrap: 'wrap' }}>
+      <div className="max-w-7xl mx-auto px-6 py-12 pb-20">
+        <div className="flex flex-wrap gap-2 mb-10">
           {POST_TYPES.map(type => (
-            <button key={type} onClick={() => setActiveType(type)}
-              style={{ fontSize: '13px', padding: '9px 16px', background: 'none', border: 'none',
-                borderBottom: activeType === type ? `2px solid ${C.gold}` : '2px solid transparent',
-                color: activeType === type ? C.navy : C.muted, fontFamily: 'Georgia, serif',
-                fontWeight: activeType === type ? 'bold' : 'normal', cursor: 'pointer', marginBottom: '-1px' }}>
+            <button key={type} onClick={() => setActive(type)}
+              className={`px-4 py-2 text-sm font-semibold rounded-full border transition-all ${
+                active === type
+                  ? 'bg-violet-600 text-white border-violet-600'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600'
+              }`}>
               {type}
             </button>
           ))}
         </div>
 
         {visible.length > 0 ? (
-          <div style={{ border: `1px solid ${C.border}` }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {visible.map((post, i) => (
-              <div key={post.id} style={{ padding: '28px', borderBottom: i < visible.length - 1 ? `1px solid ${C.border}` : 'none', backgroundColor: i % 2 === 0 ? '#fff' : C.cream }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
-                  <Tag label={post.type} variant="postType" />
-                  <span style={{ fontSize: '12px', color: C.mutedLight }}>{post.date}</span>
+              <Reveal key={post.id} delay={i * 80}>
+                <div className="bg-white rounded-2xl border border-slate-200 p-7 card-lift flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${POST_TYPE_COLORS[post.type] || POST_TYPE_COLORS['Paper Spotlight']}`}>
+                      {post.type}
+                    </span>
+                    <span className="text-xs text-slate-400">{post.date}</span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 leading-snug">{post.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed flex-1">{post.summary}</p>
+                  <button className="text-sm font-semibold text-violet-600 hover:text-violet-800 text-left flex items-center gap-1 mt-auto transition-colors">
+                    Read <ArrowUpRight size={13} />
+                  </button>
                 </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: C.navy, marginBottom: '8px', lineHeight: 1.4 }}>{post.title}</h3>
-                <p style={{ fontSize: '14px', color: C.muted, lineHeight: 1.65, marginBottom: '12px', maxWidth: '720px' }}>{post.summary}</p>
-                <a href="#" style={{ color: C.teal, fontSize: '13px', textDecoration: 'none' }} onClick={e => e.preventDefault()}>Read →</a>
-              </div>
+              </Reveal>
             ))}
           </div>
         ) : (
-          <div style={{ padding: '48px', textAlign: 'center', border: `1px solid ${C.border}` }}>
-            <p style={{ color: C.muted }}>No posts in this category yet.</p>
+          <div className="py-20 text-center rounded-2xl border border-slate-200 bg-slate-50">
+            <p className="text-slate-500">No posts in this category yet.</p>
           </div>
         )}
       </div>
@@ -1180,7 +1316,7 @@ function BlogPage() {
   );
 }
 
-// ─── PAGE 7: GET INVOLVED ─────────────────────────────────────────────────────
+// ─── GET INVOLVED ─────────────────────────────────────────────────────────────
 
 function GetInvolvedPage() {
   const [form, setForm] = useState({ title: '', authors: '', doi: '', area: '' });
@@ -1195,127 +1331,133 @@ function GetInvolvedPage() {
     { org: 'Femtech Fund & WHAM', focus: "Industry and advocacy funding streams specifically targeting menopause technology and women's health AI." },
   ];
 
-  const inputStyle = {
-    width: '100%', padding: '8px 10px', fontSize: '13px', border: `1px solid ${C.border}`,
-    color: C.text, fontFamily: 'Georgia, serif', outline: 'none', boxSizing: 'border-box', background: '#fff',
-  };
+  const inputCls = 'w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 placeholder-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 transition-all';
 
   return (
     <div>
-      <div style={{ backgroundColor: C.navy, padding: '40px 24px 36px', borderBottom: `3px solid ${C.gold}` }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <SectionLabel>Get Involved</SectionLabel>
-          <h1 style={{ fontSize: '2rem', color: '#fff', margin: '0 0 8px 0' }}>Join the Initiative</h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.72)', margin: 0, maxWidth: '580px' }}>
-            Researchers, clinicians, data scientists, and patient advocates are all welcome.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Get Involved"
+        title="Join the Initiative"
+        desc="Researchers, clinicians, data scientists, and patient advocates are all welcome."
+      />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '56px 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1px', border: `1px solid ${C.border}`, backgroundColor: C.border, marginBottom: '56px' }}>
-          {/* Submit */}
-          <div style={{ backgroundColor: '#fff', padding: '32px' }}>
-            <h2 style={{ fontSize: '1.2rem', color: C.navy, marginBottom: '8px' }}>Submit a Paper</h2>
-            <p style={{ fontSize: '13px', color: C.muted, marginBottom: '20px', lineHeight: 1.6 }}>
-              Know a paper we haven't indexed? We review all submissions within two weeks.
-            </p>
-            {submitted ? (
-              <div style={{ backgroundColor: C.goldLight, border: `1px solid #d4b46a`, padding: '16px', textAlign: 'center' }}>
-                <p style={{ color: C.navy, fontWeight: 'bold', margin: '0 0 8px 0' }}>Thank you — submission received.</p>
-                <button onClick={() => { setSubmitted(false); setForm({ title: '', authors: '', doi: '', area: '' }); }}
-                  style={{ fontSize: '12px', color: C.muted, background: 'none', border: 'none', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
-                  Submit another →
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {[
-                  { key: 'title', label: 'Title', placeholder: 'Full paper title', required: true },
-                  { key: 'authors', label: 'Authors', placeholder: 'Last FM, Last FM, …', required: false },
-                ].map(field => (
-                  <div key={field.key}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', color: C.muted, marginBottom: '5px' }}>
-                      {field.label} {field.required && <span style={{ color: C.gold }}>*</span>}
-                    </label>
-                    <input type="text" placeholder={field.placeholder} value={form[field.key]}
-                      onChange={e => setForm(d => ({ ...d, [field.key]: e.target.value }))} style={inputStyle} />
-                  </div>
-                ))}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', color: C.muted, marginBottom: '5px' }}>DOI</label>
-                    <input type="text" placeholder="10.xxxx/xxxxx" value={form.doi}
-                      onChange={e => setForm(d => ({ ...d, doi: e.target.value }))} style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.06em', color: C.muted, marginBottom: '5px' }}>Area</label>
-                    <select value={form.area} onChange={e => setForm(d => ({ ...d, area: e.target.value }))}
-                      style={{ ...inputStyle }}>
-                      <option value="">Select…</option>
-                      {AREAS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                  </div>
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        {/* Submit + Collaborate */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-16">
+          <Reveal>
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 h-full">
+              <h2 className="text-xl font-extrabold text-slate-900 mb-2 tracking-tight">Submit a Paper</h2>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                Know a paper we haven't indexed? We review all submissions within two weeks.
+              </p>
+              {submitted ? (
+                <div className="bg-violet-50 border border-violet-200 rounded-xl p-6 text-center">
+                  <p className="font-bold text-slate-900 mb-2">Thank you — submission received.</p>
+                  <button onClick={() => { setSubmitted(false); setForm({ title: '', authors: '', doi: '', area: '' }); }}
+                    className="text-sm text-violet-600 font-semibold hover:text-violet-800 transition-colors">
+                    Submit another →
+                  </button>
                 </div>
-                <button onClick={() => { if (form.title.trim()) setSubmitted(true); }}
-                  style={{ padding: '10px', fontSize: '13px', fontWeight: 'bold', backgroundColor: C.navy, color: '#fff', border: 'none', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <Send size={13} /> Submit Paper
-                </button>
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                      Title <span className="text-violet-500">*</span>
+                    </label>
+                    <input type="text" placeholder="Full paper title" value={form.title}
+                      onChange={e => setForm(d => ({ ...d, title: e.target.value }))} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Authors</label>
+                    <input type="text" placeholder="Last FM, Last FM, …" value={form.authors}
+                      onChange={e => setForm(d => ({ ...d, authors: e.target.value }))} className={inputCls} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">DOI</label>
+                      <input type="text" placeholder="10.xxxx/xxxxx" value={form.doi}
+                        onChange={e => setForm(d => ({ ...d, doi: e.target.value }))} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Area</label>
+                      <select value={form.area} onChange={e => setForm(d => ({ ...d, area: e.target.value }))}
+                        className={inputCls}>
+                        <option value="">Select…</option>
+                        {AREAS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <button onClick={() => { if (form.title.trim()) setSubmitted(true); }}
+                    className="flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 rounded-xl transition-colors">
+                    <Send size={14} /> Submit Paper
+                  </button>
+                </div>
+              )}
+            </div>
+          </Reveal>
 
-          {/* Collaborate */}
-          <div style={{ backgroundColor: C.cream, padding: '32px', display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ fontSize: '1.2rem', color: C.navy, marginBottom: '8px' }}>Collaborate</h2>
-            <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.7, marginBottom: '12px' }}>
-              We welcome collaborations with clinical researchers, data scientists, patient advocacy organizations, and health systems — especially those working with under-studied populations.
-            </p>
-            <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.7 }}>
-              If you're interested in co-developing methodological standards, contributing datasets, or joining our editorial board, reach out.
-            </p>
-            <button style={{ marginTop: 'auto', paddingTop: '24px', padding: '10px', fontSize: '13px', color: C.navy, border: `1px solid ${C.navy}`, background: 'none', fontFamily: 'Georgia, serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: 'pointer', marginTop: '24px' }}>
-              <Mail size={13} /> Get in Touch
-            </button>
-          </div>
+          <Reveal delay={100}>
+            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 flex flex-col h-full">
+              <h2 className="text-xl font-extrabold text-slate-900 mb-2 tracking-tight">Collaborate</h2>
+              <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                We welcome collaborations with clinical researchers, data scientists, patient advocacy organizations, and health systems — especially those working with under-studied populations.
+              </p>
+              <p className="text-sm text-slate-500 leading-relaxed mb-8">
+                If you're interested in co-developing methodological standards, contributing datasets, or joining our editorial board, reach out.
+              </p>
+              <button className="mt-auto flex items-center justify-center gap-2 border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-semibold py-3 rounded-xl transition-colors">
+                <Mail size={14} /> Get in Touch
+              </button>
+            </div>
+          </Reveal>
         </div>
 
         {/* Funding */}
-        <section style={{ marginBottom: '56px' }}>
-          <h2 style={{ fontSize: '1.25rem', color: C.navy, marginBottom: '20px' }}>Funding Opportunities</h2>
-          <div style={{ border: `1px solid ${C.border}` }}>
+        <section className="mb-16">
+          <Reveal>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight">Funding Opportunities</h2>
+          </Reveal>
+          <div className="flex flex-col gap-3">
             {funding.map((f, i) => (
-              <div key={i} style={{ padding: '16px 24px', borderBottom: i < funding.length - 1 ? `1px solid ${C.border}` : 'none', display: 'flex', gap: '24px', alignItems: 'flex-start', flexWrap: 'wrap', backgroundColor: i % 2 === 0 ? '#fff' : C.cream }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: C.navy, minWidth: '140px' }}>{f.org}</span>
-                <span style={{ fontSize: '13px', color: C.muted, lineHeight: 1.6, flex: 1 }}>{f.focus}</span>
-                <a href="#" style={{ fontSize: '12px', color: C.teal, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }} onClick={e => e.preventDefault()}>
-                  Learn more <ExternalLink size={11} />
-                </a>
-              </div>
+              <Reveal key={i} delay={i * 50}>
+                <div className="bg-white rounded-xl border border-slate-200 px-6 py-4 flex flex-wrap items-start gap-4 card-lift">
+                  <span className="text-sm font-bold text-violet-700 min-w-[140px]">{f.org}</span>
+                  <p className="text-sm text-slate-600 leading-relaxed flex-1">{f.focus}</p>
+                  <a href="#" onClick={e => e.preventDefault()}
+                    className="text-xs text-violet-600 font-semibold flex items-center gap-1 hover:text-violet-800 transition-colors whitespace-nowrap">
+                    Learn more <ExternalLink size={11} />
+                  </a>
+                </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
-        {/* Mailing list */}
-        <div style={{ backgroundColor: C.navy, padding: '36px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-          <div>
-            <h3 style={{ fontSize: '1.1rem', color: '#fff', margin: '0 0 6px 0' }}>Stay current with menopause AI research</h3>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.65)', margin: 0 }}>Monthly digest of new papers, datasets, and field updates.</p>
+        {/* Newsletter */}
+        <Reveal>
+          <div className="relative bg-ink rounded-2xl overflow-hidden">
+            <div className="absolute -top-16 -right-16 w-64 h-64 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative px-10 py-10 flex flex-wrap items-center justify-between gap-6">
+              <div>
+                <h3 className="text-xl font-extrabold text-white mb-1.5">Stay current with menopause AI research</h3>
+                <p className="text-sm text-slate-400">Monthly digest of new papers, datasets, and field updates.</p>
+              </div>
+              <div className="flex gap-0 w-full md:w-auto">
+                <input type="email" placeholder="you@institution.edu"
+                  className="flex-1 md:w-64 px-4 py-3 text-sm bg-white/10 border border-white/20 text-white placeholder-slate-400 rounded-l-xl outline-none focus:border-violet-400 transition-all" />
+                <button className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm rounded-r-xl transition-colors">
+                  Subscribe
+                </button>
+              </div>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '0' }}>
-            <input type="email" placeholder="you@institution.edu"
-              style={{ padding: '10px 14px', fontSize: '13px', border: 'none', fontFamily: 'Georgia, serif', outline: 'none', minWidth: '240px', boxSizing: 'border-box' }} />
-            <button style={{ padding: '10px 20px', fontSize: '13px', fontWeight: 'bold', backgroundColor: C.gold, color: C.navy, border: 'none', fontFamily: 'Georgia, serif', cursor: 'pointer' }}>
-              Subscribe
-            </button>
-          </div>
-        </div>
+        </Reveal>
       </div>
     </div>
   );
 }
 
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -1335,7 +1477,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ backgroundColor: C.bg, minHeight: '100vh', color: C.text }}>
+    <div className="min-h-screen bg-white text-slate-900">
       <Nav currentPage={currentPage} setCurrentPage={setCurrentPage} />
       <main>{pages[currentPage]}</main>
       <Footer setCurrentPage={setCurrentPage} />

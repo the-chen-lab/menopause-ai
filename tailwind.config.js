@@ -6,6 +6,14 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      colors: {
+        ink: '#040C1F',
+        'ink-2': '#0A1628',
+        'ink-3': '#111827',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],
