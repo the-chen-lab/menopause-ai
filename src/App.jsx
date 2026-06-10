@@ -73,6 +73,32 @@ const AREAS = [
     papers: ['Sims et al. 2023', 'Perez-Lopez & Navarro 2024', 'Woods et al. 2022'],
   },
   {
+    id: 'social',
+    name: 'Social Media & Online Discourse',
+    short: 'Mining how people talk about menopause on Reddit, Twitter/X, and health forums to understand lived experience, information gaps, and unmet needs at scale.',
+    overview:
+      'Social media platforms host candid, real-time conversations about menopause that clinical data rarely captures. NLP methods applied to these sources reveal how people describe symptoms in their own words, which treatments they seek out, what misinformation circulates, and how experiences differ by community. This area covers platform-specific NLP, topic modeling, sentiment analysis, and the ethical challenges of working with user-generated health data.',
+    challenges: [
+      'Linking online self-reports to verified health outcomes without compromising user privacy',
+      'Distinguishing misinformation from emerging lay knowledge in menopause-related health discussions',
+      'Accounting for platform selection bias — who posts about menopause online vs. who does not',
+    ],
+    papers: ['Jacobson et al. 2024', 'Cohen & Lin 2023'],
+  },
+  {
+    id: 'comorbidities',
+    name: 'Comorbidities & Co-occurring Conditions',
+    short: 'Understanding the clustering of conditions that emerge during and after the menopause transition, from cardiovascular disease and depression to thyroid disorders and autoimmune conditions.',
+    overview:
+      'Menopause rarely arrives alone. Depression, cardiovascular disease, metabolic syndrome, thyroid dysfunction, and autoimmune conditions all spike in prevalence during or shortly after the transition. AI methods applied to large EHR and claims datasets can surface which comorbidity clusters are most common, identify early warning patterns, and test whether menopause timing is a causal factor in downstream diagnosis rates.',
+    challenges: [
+      'Separating aging-related comorbidity accumulation from menopause-specific risk trajectories',
+      'Building temporally resolved comorbidity graphs from claims data with inconsistent coding practices',
+      'Identifying direction of causality when menopause and comorbidities co-occur in cross-sectional data',
+    ],
+    papers: ['Matthews et al. 2023', 'Park et al. 2024'],
+  },
+  {
     id: 'nlp',
     name: 'LLMs & NLP',
     short: 'Extracting menopause phenotypes from unstructured clinical notes at scale and deploying patient-facing AI for education and shared decision-making.',
@@ -297,35 +323,53 @@ const TOOLS = [
 const BLOG_POSTS = [
   {
     id: 1,
-    title: 'How Consumer Wearables Are Transforming Menopause Research',
-    type: 'Field Overview',
-    date: 'May 14, 2026',
+    title: 'Memory Decline After Menopause Linked to Loss of Estrogen in Brain Tissue',
+    type: 'In the News',
+    date: 'May 2026',
+    source: 'Northwestern Medicine',
+    url: 'https://news.northwestern.edu/stories/2026/05/memory-decline-after-menopause-linked-to-loss-of-estrogen-production-in-brain-tissue',
     summary:
-      'Fitbit, Apple Watch, and Oura Ring now capture HRV, skin temperature, SpO₂, and sleep staging at population scale — opening windows into perimenopausal physiology that clinical research could never match.',
+      'A preclinical study from Northwestern found that aging females uniquely depend on brain estrogen for memory protection. The findings may help explain why nearly two-thirds of Alzheimer\'s cases occur in women.',
   },
   {
     id: 2,
-    title: 'Paper Spotlight: ClinicalBERT for Menopause Phenotyping (Jacobson et al., 2024)',
-    type: 'Paper Spotlight',
-    date: 'April 28, 2026',
+    title: 'Antihistamines for Perimenopause? Fact vs. Fiction on a Viral Trend',
+    type: 'In the News',
+    date: '2026',
+    source: 'The Cut',
+    url: 'https://www.thecut.com/article/antihistamines-pepcid-ac-perimenopause-pmdd-fact-fiction.html',
     summary:
-      'A walkthrough of the methods, multi-site validation, and key findings of the JAMIA paper on NLP-based menopause status extraction — and what it means for building large retrospective cohorts from existing EHR data.',
+      'Pepcid AC and other antihistamines have been circulating on social media as a perimenopause remedy. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.',
   },
   {
     id: 3,
-    title: 'Open Problem: Evaluating Fairness When Onset Age Differs by Biology',
-    type: 'Open Problem',
-    date: 'March 30, 2026',
+    title: 'Menopause Is a Glitch in the Simulation',
+    type: 'In the News',
+    date: '2026',
+    source: 'Substack',
+    url: 'https://hukmanimansi.substack.com/p/menopause-is-a-glitch-in-the-simulation',
     summary:
-      "Standard fairness metrics like equalized odds don't map cleanly onto menopause prediction tasks where onset age varies across racial groups for partly biological reasons. A proposed framework and call for community input.",
+      'An essay arguing that menopause is an evolutionary holdover that no longer serves women, and asking what medicine could do if we actually tried to change that. Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
   },
   {
     id: 4,
-    title: 'Causal Forests for Personalized HRT Decisions: A Methods Explainer',
-    type: 'Methods Explainer',
-    date: 'February 18, 2026',
+    title: "Women's Health Research Has a Data Problem",
+    type: 'In the News',
+    date: 'April 2026',
+    source: 'The New York Times',
+    url: 'https://www.nytimes.com/athletic/7052000/2026/04/10/womens-performance-health-research-challenges-and-future/',
     summary:
-      'The intuition behind causal forests, the assumptions they require, and how Torres et al. 2024 applied them to UK Biobank to identify women who are systematically undertreated.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.',
+  },
+  {
+    id: 5,
+    title: 'The Menopause Symptom You Might Not Recognize',
+    type: 'In the News',
+    date: 'December 2025',
+    source: 'The New York Times',
+    url: 'https://www.nytimes.com/2025/12/10/well/menopause-symptoms.html',
+    summary:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.',
   },
 ];
 
@@ -605,7 +649,7 @@ function Footer({ setCurrentPage }) {
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-400 mb-4">Contact</p>
-            <p className="text-sm">menopauseai@research.edu</p>
+            <p className="text-sm text-slate-400 leading-relaxed">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.</p>
           </div>
         </div>
         <div className="border-t border-white/10 pt-8 flex flex-wrap justify-between gap-3 text-xs text-slate-600">
@@ -622,15 +666,15 @@ function Footer({ setCurrentPage }) {
 function HomePage({ setCurrentPage }) {
   const heroStats = [
     { n: '10+', label: 'Curated Papers' },
-    { n: '6', label: 'Research Areas' },
+    { n: '8', label: 'Research Areas' },
     { n: '6', label: 'Key Datasets' },
     { n: '4', label: 'Open Tools' },
   ];
 
   const impactStats = [
-    { value: 47, suffix: 'M', label: 'US women experiencing the menopause transition annually' },
-    { value: 80, suffix: '%', label: 'report symptoms that meaningfully affect quality of life' },
-    { prefix: '<', value: 5, suffix: '%', label: 'of NIH funding historically directed to menopause research' },
+    { value: 47, suffix: 'M', label: 'US women experiencing the menopause transition annually', cite: 'US Census Bureau, 2023' },
+    { value: 80, suffix: '%', label: 'report symptoms that meaningfully affect quality of life', cite: 'NAMS, Menopause Practice Guidelines, 2022' },
+    { prefix: '<', value: 5, suffix: '%', label: 'of NIH funding historically directed to menopause research', cite: 'Crandall et al., Menopause 2021' },
   ];
 
   return (
@@ -643,18 +687,13 @@ function HomePage({ setCurrentPage }) {
         <div className="line-grid absolute inset-0 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-32">
-          <div className="inline-flex items-center gap-2.5 bg-violet-500/10 border border-violet-500/25 text-violet-300 text-xs font-semibold px-4 py-2 rounded-full mb-8">
-            <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse" />
-            Open Research Commons · Est. 2026
-          </div>
-
           <h1 className="text-5xl sm:text-6xl md:text-[76px] font-black text-white leading-[1.03] mb-6 tracking-tight max-w-4xl">
             AI Research for<br />
             <span className="text-gradient">Menopause Science</span>
           </h1>
 
           <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
-            A catalog of machine learning and AI research applied to perimenopause and menopause — organized by research area, dataset, and method, with equity at the center.
+            We use AI and real-world data to study menopause. From clinical records to what people say online, we want to understand a transition that affects millions and gets far too little research attention.
           </p>
 
           <div className="flex flex-wrap gap-4 mb-20">
@@ -696,6 +735,7 @@ function HomePage({ setCurrentPage }) {
                     <span className="text-violet-400">{s.suffix}</span>
                   </div>
                   <p className="text-slate-400 text-sm max-w-xs mx-auto leading-relaxed">{s.label}</p>
+                  <p className="text-slate-600 text-[10px] mt-2 max-w-xs mx-auto italic">{s.cite}</p>
                 </div>
               </Reveal>
             ))}
@@ -710,9 +750,9 @@ function HomePage({ setCurrentPage }) {
             <div className="flex flex-wrap items-end justify-between gap-4 mb-12">
               <div>
                 <SectionEyebrow>Research Areas</SectionEyebrow>
-                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Six Research Frontiers</h2>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Research Areas</h2>
                 <p className="mt-3 text-slate-500 max-w-xl leading-relaxed">
-                  Each area represents a distinct scientific challenge with its own methodology, data needs, and equity considerations.
+                  Eight areas spanning clinical prediction, social media analysis, comorbidities, and equity.
                 </p>
               </div>
               <button onClick={() => setCurrentPage('areas')}
@@ -782,7 +822,7 @@ function HomePage({ setCurrentPage }) {
               Help build the resource
             </h2>
             <p className="text-violet-200 text-lg mb-10 leading-relaxed max-w-xl mx-auto">
-              Submit papers, contribute datasets, or join our editorial board. Researchers, clinicians, and data scientists are all welcome.
+              Submit papers, contribute datasets, or reach out about collaboration. We are a small team and we welcome people who want to dig into this problem.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <button onClick={() => setCurrentPage('involved')}
@@ -803,100 +843,173 @@ function HomePage({ setCurrentPage }) {
 
 // ─── ABOUT ────────────────────────────────────────────────────────────────────
 
+const FACULTY = [
+  {
+    initials: 'IC',
+    name: 'Irene Chen',
+    role: 'Principal Investigator',
+    affiliation: 'UC Berkeley',
+    bio: 'Placeholder bio. Irene works on machine learning for healthcare with a focus on fairness and clinical decision-making.',
+    gradient: 'from-violet-500 to-purple-600',
+  },
+  {
+    initials: 'MA',
+    name: 'Monica Agrawal',
+    role: '',
+    affiliation: 'Duke University',
+    bio: 'Placeholder bio. Monica focuses on NLP and clinical text mining, with applications in chronic disease and women\'s health.',
+    gradient: 'from-rose-500 to-pink-600',
+  },
+  {
+    initials: 'YH',
+    name: 'Yulin Hswen',
+    role: '',
+    affiliation: 'UC San Francisco',
+    bio: 'Placeholder bio. Yulin studies digital epidemiology and social media data to understand health disparities at scale.',
+    gradient: 'from-sky-500 to-blue-600',
+  },
+];
+
+const STUDENTS = [
+  {
+    initials: 'NT',
+    name: 'Nitya Thakkar',
+    role: '',
+    affiliation: 'Insert school here',
+    bio: 'Placeholder bio.',
+    gradient: 'from-teal-500 to-emerald-600',
+  },
+  {
+    initials: 'SP',
+    name: 'Sarika Pasumarthy',
+    role: '',
+    affiliation: 'Insert school here',
+    bio: 'Placeholder bio.',
+    gradient: 'from-amber-500 to-orange-500',
+  },
+  {
+    initials: 'SS',
+    name: 'Sraavya Sambara',
+    role: '',
+    affiliation: 'Insert school here',
+    bio: 'Placeholder bio.',
+    gradient: 'from-indigo-500 to-blue-600',
+  },
+  {
+    initials: 'TM',
+    name: 'Tanya Mehta',
+    role: '',
+    affiliation: 'Insert school here',
+    bio: 'Placeholder bio.',
+    gradient: 'from-fuchsia-500 to-pink-600',
+  },
+];
+
+function PersonCard({ person }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-7 card-lift flex flex-col">
+      <div className="flex items-start gap-4 mb-4">
+        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${person.gradient} text-white flex items-center justify-center font-bold text-base flex-shrink-0 shadow-md`}>
+          {person.initials}
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-slate-900 leading-tight">{person.name}</h3>
+          {person.role && <p className="text-xs text-violet-600 font-semibold mt-0.5">{person.role}</p>}
+          {person.affiliation && <p className="text-xs text-slate-400 mt-0.5">{person.affiliation}</p>}
+        </div>
+      </div>
+      <p className="text-sm text-slate-500 leading-relaxed">{person.bio}</p>
+    </div>
+  );
+}
+
 function AboutPage() {
-  const team = [
-    {
-      initials: 'AO',
-      name: 'Dr. Amara Osei-Bonsu',
-      affiliation: 'Department of Biomedical Informatics · Stanford University',
-      bio: 'Develops fairness-aware ML models for reproductive aging and hormonal transitions. PI of the PRISM menopause equity study; member of the All of Us Diversity Working Group.',
-      gradient: 'from-violet-500 to-purple-600',
-    },
-    {
-      initials: 'LN',
-      name: 'Dr. Linda Nguyen',
-      affiliation: "Division of Women's Health · Brigham and Women's Hospital",
-      bio: 'Gynecologist-epidemiologist specializing in hormonal transitions and clinical decision support. Leads the clinical validation arm of AI-based HRT personalization tools in the MGB system.',
-      gradient: 'from-rose-500 to-pink-600',
-    },
-    {
-      initials: 'MW',
-      name: 'Dr. Marcus Webb',
-      affiliation: 'Bakar Computational Health Sciences Institute · UCSF',
-      bio: 'Builds deep learning models for physiological signal processing applied to reproductive health. Created HotFlashNet and the MenoNLP toolkit; serves on the NEJM AI editorial board.',
-      gradient: 'from-sky-500 to-blue-600',
-    },
-  ];
-
-  const scopeItems = [
-    'Prediction of menopause onset, timing, or hormonal trajectory',
-    'Symptom detection, classification, or unsupervised phenotyping',
-    'Post-menopausal risk stratification for cardiovascular, bone, or metabolic outcomes',
-    'NLP extraction of menopause-related phenotypes from clinical notes',
-    'AI-assisted treatment decision support for hormone therapy',
-    "Algorithmic fairness auditing of tools used in women's health",
-  ];
-
   return (
     <div>
       <PageHeader eyebrow="About" title="About the Initiative" />
 
-      <div className="max-w-7xl mx-auto px-6 py-20">
+      <div className="max-w-5xl mx-auto px-6 py-20">
+
         {/* Mission */}
-        <Reveal className="max-w-3xl mb-20">
-          <SectionEyebrow>Mission</SectionEyebrow>
-          <h2 className="text-2xl font-extrabold text-slate-900 mb-5 tracking-tight">Why this exists</h2>
-          <p className="text-base text-slate-600 leading-relaxed mb-4">
-            The Menopause AI Initiative is an open research hub dedicated to cataloging, connecting, and accelerating AI and machine learning research applied to perimenopause and menopause. We believe that women — particularly Black, Latina, and Asian women who have been historically excluded from menopause research — deserve science that reflects their biology, their lives, and their priorities.
-          </p>
-          <p className="text-base text-slate-600 leading-relaxed">
-            We are a research commons: indexing papers, surfacing open datasets and tools, and building a community of researchers committed to rigorous, equitable, and reproducible menopause AI science.
-          </p>
+        <Reveal className="mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+            <div>
+              <SectionEyebrow>What we do</SectionEyebrow>
+              <h2 className="text-2xl font-extrabold text-slate-900 mb-5 tracking-tight">The project</h2>
+              <p className="text-base text-slate-600 leading-relaxed mb-4">
+                We study menopause using AI and real-world data. That means electronic health records, wearables, and something most clinical research ignores: what people actually say online.
+              </p>
+              <p className="text-base text-slate-600 leading-relaxed mb-4">
+                Some of the questions that drive our work: how do people talk about menopause on social media, and what does that tell us about symptoms, information-seeking, and unmet needs? What conditions tend to show up alongside menopause, and can we find patterns in those clusters before they become serious?
+              </p>
+              <p className="text-base text-slate-600 leading-relaxed">
+                We want the science to be open and the tools to be useful. That means publishing datasets, sharing code, and writing about the work in ways that go beyond academic papers.
+              </p>
+            </div>
+            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8">
+              <SectionEyebrow>Why it matters</SectionEyebrow>
+              <h3 className="text-lg font-bold text-slate-900 mb-4">A field that got left behind</h3>
+              <ul className="flex flex-col gap-4">
+                {[
+                  'Less than 5% of NIH funding has historically gone to menopause research',
+                  'Roughly 47 million US women are going through the transition at any given time',
+                  '80% report symptoms that affect daily life — many without a clear diagnosis or treatment plan',
+                  'Black and Latina women are underrepresented in most datasets',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-600 leading-relaxed">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-violet-500 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </Reveal>
 
-        {/* Team */}
-        <div className="mb-20">
+        {/* Faculty */}
+        <div className="mb-16">
           <Reveal>
             <SectionEyebrow>People</SectionEyebrow>
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight">Advisory & Editorial Board</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-2 tracking-tight">Faculty</h2>
+            <p className="text-slate-500 text-sm mb-8">The project is led by three faculty across UC Berkeley, Duke, and UCSF.</p>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {team.map((person, i) => (
+            {FACULTY.map((person, i) => (
               <Reveal key={i} delay={i * 100}>
-                <div className="bg-white rounded-2xl border border-slate-200 p-7 card-lift">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${person.gradient} text-white flex items-center justify-center font-bold text-base mb-5 shadow-lg`}>
-                    {person.initials}
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 mb-1">{person.name}</h3>
-                  <p className="text-xs text-violet-600 font-semibold mb-3 leading-snug">{person.affiliation}</p>
-                  <p className="text-sm text-slate-500 leading-relaxed">{person.bio}</p>
-                </div>
+                <PersonCard person={person} />
               </Reveal>
             ))}
           </div>
         </div>
 
-        {/* Scope */}
+        {/* Students */}
+        <div className="mb-20">
+          <Reveal>
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight">Students</h2>
+          </Reveal>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {STUDENTS.map((person, i) => (
+              <Reveal key={i} delay={i * 80}>
+                <PersonCard person={person} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact */}
         <Reveal>
-          <div className="bg-violet-50 border border-violet-200 rounded-2xl p-8 max-w-3xl">
-            <SectionEyebrow>Scope</SectionEyebrow>
-            <h3 className="text-xl font-extrabold text-slate-900 mb-4 tracking-tight">
-              What counts as "Menopause × AI"?
-            </h3>
-            <p className="text-sm text-slate-600 leading-relaxed mb-5">
-              We index research that applies machine learning, statistical learning, or NLP to questions substantively about perimenopause, menopause, or post-menopausal health:
-            </p>
-            <ul className="flex flex-col gap-2.5 mb-5">
-              {scopeItems.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
-                  <span className="mt-0.5 w-4 h-4 rounded-full bg-violet-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-bold">✓</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              General women's health AI papers without menopause-specific findings, and clinical studies without an ML component, are outside scope.
-            </p>
+          <div className="bg-ink rounded-2xl p-10 text-center relative overflow-hidden">
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative">
+              <h3 className="text-xl font-bold text-white mb-3">Get in touch</h3>
+              <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto leading-relaxed">
+                We are always looking for collaborators, dataset contributors, and people who want to help make this work better. Reach out.
+              </p>
+              <a href="mailto:placeholder@berkeley.edu"
+                className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
+                Contact us
+              </a>
+            </div>
           </div>
         </Reveal>
       </div>
@@ -913,8 +1026,8 @@ function ResearchAreasPage({ setCurrentPage }) {
     <div>
       <PageHeader
         eyebrow="Research Areas"
-        title="Six Research Frontiers"
-        desc="Each area represents a distinct scientific challenge with its own data requirements, methodological landscape, and equity considerations."
+        title="Research Areas"
+        desc="Eight areas spanning clinical prediction, social media data, comorbidities, and algorithmic fairness."
       />
 
       <div className="max-w-7xl mx-auto px-6 py-16">
@@ -1251,9 +1364,10 @@ function DataToolsPage() {
 
 // ─── BLOG ─────────────────────────────────────────────────────────────────────
 
-const POST_TYPES = ['All', 'Paper Spotlight', 'Field Overview', 'Methods Explainer', 'Open Problem'];
+const POST_TYPES = ['All', 'In the News', 'Paper Spotlight', 'Field Overview', 'Methods Explainer', 'Open Problem'];
 
 const POST_TYPE_COLORS = {
+  'In the News': 'bg-emerald-50 text-emerald-700 border-emerald-200',
   'Paper Spotlight': 'bg-violet-50 text-violet-700 border-violet-200',
   'Field Overview': 'bg-sky-50 text-sky-700 border-sky-200',
   'Methods Explainer': 'bg-amber-50 text-amber-700 border-amber-200',
@@ -1269,7 +1383,7 @@ function BlogPage() {
       <PageHeader
         eyebrow="Blog"
         title="Research Perspectives"
-        desc="Paper spotlights, field overviews, methods explainers, and open problems."
+        desc="Menopause in the news, paper spotlights, and field updates."
       />
 
       <div className="max-w-7xl mx-auto px-6 py-12 pb-20">
@@ -1291,17 +1405,25 @@ function BlogPage() {
             {visible.map((post, i) => (
               <Reveal key={post.id} delay={i * 80}>
                 <div className="bg-white rounded-2xl border border-slate-200 p-7 card-lift flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <span className={`inline-flex text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${POST_TYPE_COLORS[post.type] || POST_TYPE_COLORS['Paper Spotlight']}`}>
                       {post.type}
                     </span>
+                    {post.source && <span className="text-xs font-semibold text-slate-500">{post.source}</span>}
                     <span className="text-xs text-slate-400">{post.date}</span>
                   </div>
                   <h3 className="text-base font-bold text-slate-900 leading-snug">{post.title}</h3>
                   <p className="text-sm text-slate-600 leading-relaxed flex-1">{post.summary}</p>
-                  <button className="text-sm font-semibold text-violet-600 hover:text-violet-800 text-left flex items-center gap-1 mt-auto transition-colors">
-                    Read <ArrowUpRight size={13} />
-                  </button>
+                  {post.url ? (
+                    <a href={post.url} target="_blank" rel="noreferrer"
+                      className="text-sm font-semibold text-violet-600 hover:text-violet-800 text-left flex items-center gap-1 mt-auto transition-colors">
+                      Read <ExternalLink size={13} />
+                    </a>
+                  ) : (
+                    <button className="text-sm font-semibold text-violet-600 hover:text-violet-800 text-left flex items-center gap-1 mt-auto transition-colors">
+                      Read <ArrowUpRight size={13} />
+                    </button>
+                  )}
                 </div>
               </Reveal>
             ))}
