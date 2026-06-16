@@ -497,14 +497,14 @@ function SectionEyebrow({ children, light = false }) {
 
 function PageHeader({ eyebrow, title, desc }) {
   return (
-    <div className="pt-16 relative bg-ink overflow-hidden">
-      <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-violet-600/20 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/3 w-56 h-56 rounded-full bg-rose-500/10 blur-3xl pointer-events-none" />
+    <div className="pt-16 relative bg-slate-50 border-b border-slate-200 overflow-hidden">
+      <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-violet-200/40 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 w-56 h-56 rounded-full bg-rose-200/20 blur-3xl pointer-events-none" />
       <div className="line-grid absolute inset-0 pointer-events-none" />
       <div className="relative max-w-7xl mx-auto px-6 py-14">
-        <SectionEyebrow light>{eyebrow}</SectionEyebrow>
-        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">{title}</h1>
-        {desc && <p className="text-base text-slate-400 max-w-xl leading-relaxed">{desc}</p>}
+        <SectionEyebrow>{eyebrow}</SectionEyebrow>
+        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-3">{title}</h1>
+        {desc && <p className="text-base text-slate-500 max-w-xl leading-relaxed">{desc}</p>}
       </div>
     </div>
   );
@@ -556,14 +556,14 @@ function Nav({ currentPage, setCurrentPage }) {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       transparent
-        ? 'bg-transparent border-b border-transparent'
+        ? 'bg-white/80 backdrop-blur-md border-b border-slate-200/60'
         : 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm'
     }`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <button
             onClick={() => { setCurrentPage('home'); setOpen(false); }}
-            className={`text-base font-black tracking-tight transition-colors ${transparent ? 'text-white' : 'text-slate-900'}`}
+            className="text-base font-black tracking-tight text-slate-900 transition-colors"
           >
             Menopause<span className="text-violet-500">AI</span>
           </button>
@@ -575,12 +575,8 @@ function Nav({ currentPage, setCurrentPage }) {
                 onClick={() => setCurrentPage(link.id)}
                 className={`text-sm px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
                   currentPage === link.id
-                    ? transparent
-                      ? 'text-white bg-white/15 font-semibold'
-                      : 'text-violet-600 bg-violet-50 font-semibold'
-                    : transparent
-                      ? 'text-white/70 hover:text-white hover:bg-white/10'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'text-violet-600 bg-violet-50 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 {link.label}
@@ -589,7 +585,7 @@ function Nav({ currentPage, setCurrentPage }) {
           </div>
 
           <button
-            className={`md:hidden p-2 rounded-lg transition-colors ${transparent ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
+            className="md:hidden p-2 rounded-lg transition-colors text-slate-700 hover:bg-slate-100"
             onClick={() => setOpen(o => !o)}
           >
             {open ? <X size={20} /> : <Menu size={20} />}
@@ -680,19 +676,18 @@ function HomePage({ setCurrentPage }) {
   return (
     <div>
       {/* HERO */}
-      <section className="relative min-h-[93vh] flex items-center overflow-hidden bg-ink">
-        <div className="absolute top-1/4 -left-12 w-[560px] h-[560px] bg-violet-600/15 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-0 w-[440px] h-[440px] bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-2/3 left-1/2 w-[300px] h-[300px] bg-blue-500/8 rounded-full blur-[100px] pointer-events-none" />
+      <section className="relative min-h-[93vh] flex items-center overflow-hidden bg-white">
+        <div className="absolute top-1/4 -left-12 w-[560px] h-[560px] bg-violet-200/40 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-0 w-[440px] h-[440px] bg-rose-200/30 rounded-full blur-[120px] pointer-events-none" />
         <div className="line-grid absolute inset-0 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-32">
-          <h1 className="text-5xl sm:text-6xl md:text-[76px] font-black text-white leading-[1.03] mb-6 tracking-tight max-w-4xl">
+          <h1 className="text-5xl sm:text-6xl md:text-[76px] font-black text-slate-900 leading-[1.03] mb-6 tracking-tight max-w-4xl">
             AI Research for<br />
             <span className="text-gradient">Menopause Science</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-500 max-w-2xl mb-10 leading-relaxed">
             We use AI and real-world data to study menopause. From clinical records to what people say online, we want to understand a transition that affects millions and gets far too little research attention.
           </p>
 
@@ -705,17 +700,17 @@ function HomePage({ setCurrentPage }) {
             </button>
             <button
               onClick={() => setCurrentPage('about')}
-              className="inline-flex items-center gap-2 border border-white/20 hover:border-white/50 hover:bg-white/5 text-white px-7 py-3.5 rounded-xl transition-all duration-200"
+              className="inline-flex items-center gap-2 border border-slate-300 hover:border-violet-400 hover:bg-violet-50 text-slate-700 px-7 py-3.5 rounded-xl transition-all duration-200"
             >
               About the Initiative
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-x-8 gap-y-4 pt-8 border-t border-white/10">
+          <div className="flex flex-wrap gap-x-8 gap-y-4 pt-8 border-t border-slate-200">
             {heroStats.map((s, i) => (
               <div key={i} className="text-center">
-                <div className="text-2xl font-black text-white">{s.n}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
+                <div className="text-2xl font-black text-slate-900">{s.n}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>
@@ -723,19 +718,19 @@ function HomePage({ setCurrentPage }) {
       </section>
 
       {/* IMPACT STATS */}
-      <section className="bg-slate-950 border-y border-white/5">
+      <section className="bg-violet-50 border-y border-violet-100">
         <div className="max-w-7xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-violet-200">
             {impactStats.map((s, i) => (
               <Reveal key={i} delay={i * 130}>
                 <div className="text-center px-8 py-8 md:py-4">
-                  <div className="text-5xl md:text-6xl font-black text-white mb-3 tracking-tight">
-                    {s.prefix && <span className="text-violet-400">{s.prefix}</span>}
+                  <div className="text-5xl md:text-6xl font-black text-slate-900 mb-3 tracking-tight">
+                    {s.prefix && <span className="text-violet-600">{s.prefix}</span>}
                     <CountUp end={s.value} />
-                    <span className="text-violet-400">{s.suffix}</span>
+                    <span className="text-violet-600">{s.suffix}</span>
                   </div>
-                  <p className="text-slate-400 text-sm max-w-xs mx-auto leading-relaxed">{s.label}</p>
-                  <p className="text-slate-600 text-[10px] mt-2 max-w-xs mx-auto italic">{s.cite}</p>
+                  <p className="text-slate-600 text-sm max-w-xs mx-auto leading-relaxed">{s.label}</p>
+                  <p className="text-slate-400 text-[10px] mt-2 max-w-xs mx-auto italic">{s.cite}</p>
                 </div>
               </Reveal>
             ))}
@@ -813,15 +808,15 @@ function HomePage({ setCurrentPage }) {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-br from-violet-900 via-purple-900 to-violet-950 py-24 relative overflow-hidden">
+      <section className="bg-violet-600 py-24 relative overflow-hidden">
         <div className="absolute inset-0 dot-grid pointer-events-none" />
         <Reveal>
           <div className="relative max-w-3xl mx-auto px-6 text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-300 mb-4">Get Involved</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-200 mb-4">Get Involved</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-5 tracking-tight">
               Help build the resource
             </h2>
-            <p className="text-violet-200 text-lg mb-10 leading-relaxed max-w-xl mx-auto">
+            <p className="text-violet-100 text-lg mb-10 leading-relaxed max-w-xl mx-auto">
               Submit papers, contribute datasets, or reach out about collaboration. We are a small team and we welcome people who want to dig into this problem.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
@@ -830,7 +825,7 @@ function HomePage({ setCurrentPage }) {
                 Get Involved
               </button>
               <button onClick={() => setCurrentPage('papers')}
-                className="border border-white/25 text-white px-8 py-3.5 rounded-xl hover:bg-white/10 transition-colors">
+                className="border border-white/40 text-white px-8 py-3.5 rounded-xl hover:bg-white/10 transition-colors">
                 Browse Papers
               </button>
             </div>
@@ -998,15 +993,15 @@ function AboutPage() {
 
         {/* Contact */}
         <Reveal>
-          <div className="bg-ink rounded-2xl p-10 text-center relative overflow-hidden">
-            <div className="absolute -top-12 -right-12 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="bg-violet-600 rounded-2xl p-10 text-center relative overflow-hidden">
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             <div className="relative">
               <h3 className="text-xl font-bold text-white mb-3">Get in touch</h3>
-              <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto leading-relaxed">
+              <p className="text-violet-100 text-sm mb-6 max-w-md mx-auto leading-relaxed">
                 We are always looking for collaborators, dataset contributors, and people who want to help make this work better. Reach out.
               </p>
               <a href="mailto:placeholder@berkeley.edu"
-                className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
+                className="inline-flex items-center gap-2 bg-white text-violet-700 hover:bg-violet-50 font-semibold px-6 py-3 rounded-xl text-sm transition-colors">
                 Contact us
               </a>
             </div>
@@ -1557,7 +1552,7 @@ function GetInvolvedPage() {
 
         {/* Newsletter */}
         <Reveal>
-          <div className="relative bg-ink rounded-2xl overflow-hidden">
+          <div className="relative bg-slate-900 rounded-2xl overflow-hidden">
             <div className="absolute -top-16 -right-16 w-64 h-64 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
             <div className="relative px-10 py-10 flex flex-wrap items-center justify-between gap-6">
               <div>

@@ -42,13 +42,13 @@
     border-color: #c4b5fd;
   }
   .dot-grid {
-    background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(109,40,217,0.08) 1px, transparent 1px);
     background-size: 40px 40px;
   }
   .line-grid {
     background-image:
-      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      linear-gradient(rgba(109,40,217,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(109,40,217,0.05) 1px, transparent 1px);
     background-size: 64px 64px;
   }
 }
