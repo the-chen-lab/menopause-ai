@@ -42,7 +42,7 @@ const STUDENTS = [
   {
     initials: 'SP',
     name: 'Sarika Pasumarthy',
-    affiliation: 'CS + Business Administration, UC Berkeley',
+    affiliation: 'CS + Business, UC Berkeley',
     bio: '',
     photo: '/images/team/sarika_linkedin.png',
     gradient: 'from-amber-500 to-orange-500',
