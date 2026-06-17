@@ -42,7 +42,7 @@ const STUDENTS = [
   {
     initials: 'SP',
     name: 'Sarika Pasumarthy',
-    affiliation: 'CS, UC Berkeley',
+    affiliation: 'CS + Business Administration, UC Berkeley',
     bio: '',
     photo: '/images/team/sarika_linkedin.png',
     gradient: 'from-amber-500 to-orange-500',
@@ -562,24 +562,30 @@ function ResearchPage() {
                 Conditions co-occurring with menopause
               </h2>
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                Menopause rarely happens in isolation. Depression, cardiovascular disease, metabolic syndrome, and thyroid dysfunction all become more common around the transition. But those connections are understudied.
+                We use EHR data to ask a basic but underexplored question: how does the health burden of women with menopause compare to women without it, and how does that compare to men? Across two studies using the All of Us Research Program, we find that women with menopause accumulate significantly more conditions than age-matched controls, and that the female-male health gap is widest precisely during the menopause transition window.
               </p>
-              <p className="text-[#5a4a6a] leading-relaxed">
-                We look at EHR and claims data to find which conditions tend to cluster together, spot patterns before they become diagnoses, and ask whether menopause timing is actually driving some of what we see.
+              <p className="text-[#5a4a6a] leading-relaxed mb-4">
+                In the first study (n = 203,247), we compared 37,514 women with a recorded menopause diagnosis to 165,733 age-matched women without one, tracking conditions within a 2-year window around menopause onset. The gap was largest among women who experienced early menopause (ages 18-35) and persisted across all age groups into later life.
               </p>
+              <p className="text-[#5a4a6a] leading-relaxed mb-4">
+                In a second study (n = 433,003), we compared cumulative condition counts between females and males across the lifespan. Females had significantly more conditions than males at every age bin. The gap was sharpest in the 50-59 window, when females averaged 9.3 new unique conditions per decade vs. 4.5 for males.
+              </p>
+              <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
             </div>
             <div className="bg-purple-50/50 rounded-xl border border-purple-100 p-8">
-              <p className="text-sm font-semibold text-[#3d2a5a] mb-4">Some of the questions we ask</p>
-              <ul className="flex flex-col gap-3">
+              <p className="text-sm font-semibold text-[#3d2a5a] mb-4">Key findings</p>
+              <ul className="flex flex-col gap-4">
                 {[
-                  'Which conditions most commonly co-occur with menopause across large patient populations?',
-                  'Are there patterns in the data that show up before a formal diagnosis?',
-                  'Do comorbidity profiles look different across racial and ethnic groups?',
-                  'Does menopause timing actually cause higher rates of certain downstream conditions?',
-                ].map((q, i) => (
+                  'Women with menopause aged 18-35 had a mean of 54.1 conditions in the 2-year window vs. 22.7 in non-menopausal controls (difference = 31.4, p < 0.001).',
+                  'The gap persisted into older age: among women 60-70, menopausal women averaged 46.8 conditions vs. 30.1 for controls (p < 0.001).',
+                  'Early menopause showed the largest comorbidity disparity, consistent with it serving as a marker for accelerated health accumulation.',
+                  'Across 433,003 All of Us participants, females averaged 42.0 cumulative conditions in the 50-59 window vs. 33.1 for males (p < 0.001).',
+                  'Per-decade new conditions at ages 50-59: females 8.3 vs. males 4.5, the widest new-condition gap across the lifespan.',
+                  'Condition categories most elevated in menopausal women: GI symptoms, GU/reproductive disorders, metabolic/endocrine, cardiovascular, anxiety/PTSD, and depression/mood.',
+                ].map((finding, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-[#5a4a6a]">
-                    <span className="mt-2 w-1 h-1 rounded-full bg-purple-300 flex-shrink-0" />
-                    {q}
+                    <span className="mt-2 w-1 h-1 rounded-full bg-rose-300 flex-shrink-0" />
+                    {finding}
                   </li>
                 ))}
               </ul>
@@ -597,32 +603,30 @@ function ResearchPage() {
                 Menopause across populations
               </h2>
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                We study how race, ethnicity, and socioeconomic factors shape when menopause begins, and how much of that variation reflects true biological differences versus the conditions people live in.
+                We study how race, ethnicity, and socioeconomic factors shape when menopause begins, and how much of that variation reflects true biological differences versus the conditions people live in. Most prior estimates of menopause onset come from studies conducted over two decades ago with limited sample diversity — we use All of Us to update those estimates with a much larger, more representative cohort.
               </p>
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                In one study using the All of Us Research Program (n = 11,306), we built three progressively refined cohorts: a full ICD-based cohort, a survey-linked subcohort adjusted for neighborhood deprivation, smoking, and alcohol use, and a confirmatory cohort that additionally excluded surgically menopausal individuals using SNOMED procedure codes. This layered approach lets us test whether findings hold up as the data gets cleaner and more precisely defined.
+                In a broad descriptive study (n = 37,548 with menopause-related EHR diagnoses, from 861,000 All of Us participants), we found that menopause onset timing varied significantly by ethnicity (p = 1e-21). Hispanic women had the earliest average onset (50.3 years), followed by Indigenous/Other (50.5), Asian & Pacific Islander (51.0), and Non-Hispanic White women (51.4). The pattern highlights greater racial and ethnic heterogeneity than many earlier studies reported.
               </p>
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                We found that Asian & Pacific Islander and Indigenous/Other individuals experienced menopause significantly earlier than White individuals across all three cohorts. The Black-White gap, often cited in prior literature, was attenuated after covariate adjustment, suggesting that socioeconomic and behavioral factors explain much of that difference rather than biology alone.
+                In a second, more methodologically rigorous study (n = 11,306), we used three progressively refined cohort definitions, adjusting for neighborhood deprivation, smoking, and alcohol use, and excluding surgically menopausal individuals, to test how robust these patterns are. Asian &amp; Pacific Islander individuals experienced onset about 2 years earlier than White individuals (p &lt; 0.001) and Indigenous/Other individuals about 1.4 years earlier (p &lt; 0.001) across all cohort definitions. The Black-White gap attenuated after covariate adjustment, suggesting socioeconomic and behavioral factors explain much of that difference. Current smoking was the only behavioral predictor that remained significant across models (~1.1 years earlier onset).
               </p>
-              <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                We also found that cohort construction choices (ICD codes, surgical exclusions, survey linkage) can meaningfully shift group-level estimates.
-              </p>
-              <p className="text-sm text-purple-500 font-medium">[link to preprint]</p>
+              <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
             </div>
             <div className="bg-purple-50/50 rounded-xl border border-purple-100 p-8">
               <p className="text-sm font-semibold text-[#3d2a5a] mb-4">Key findings</p>
               <ul className="flex flex-col gap-4">
                 {[
-                  { finding: 'Asian & Pacific Islander individuals experienced menopause ~2 years earlier than White individuals (p < 0.001), the largest adjusted difference observed.', },
-                  { finding: 'Indigenous/Other individuals experienced onset ~1.4 years earlier than White individuals (p < 0.001).', },
-                  { finding: 'The Black-White gap was not significant after adjusting for SES and behavioral factors, consistent with prior longitudinal work.', },
-                  { finding: 'Current smoking was the only behavioral predictor that remained significant across all models (~1.1 years earlier onset).', },
-                  { finding: 'Results held across three progressively refined cohort definitions, suggesting the findings are robust to methodological choices.', },
-                ].map((item, i) => (
+                  'Across 37,548 women with menopause diagnoses in All of Us, average onset ranged from 50.3 years (Hispanic) to 51.4 years (Non-Hispanic White), with variation significant by ethnicity (p = 1e-21).',
+                  'In a refined cohort (n = 11,306), Asian & Pacific Islander individuals experienced onset ~2 years earlier than White individuals (p < 0.001), the largest adjusted difference observed.',
+                  'Indigenous/Other individuals experienced onset ~1.4 years earlier than White individuals (p < 0.001).',
+                  'The Black-White gap attenuated after adjusting for SES and behavioral factors, suggesting social determinants drive much of the observed difference.',
+                  'Current smoking was the only behavioral predictor that remained significant across all cohort definitions (~1.1 years earlier onset).',
+                  'Cohort construction choices (ICD codes, surgical exclusions, survey linkage) can shift group-level estimates, making methodological transparency critical.',
+                ].map((finding, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-[#5a4a6a]">
-                    <span className="mt-2 w-1 h-1 rounded-full bg-purple-300 flex-shrink-0" />
-                    {item.finding}
+                    <span className="mt-2 w-1 h-1 rounded-full bg-fuchsia-300 flex-shrink-0" />
+                    {finding}
                   </li>
                 ))}
               </ul>
@@ -646,7 +650,6 @@ function PersonCard({ person }) {
             alt={person.name}
             className="w-full h-full object-cover object-top"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-purple-900/25 via-transparent to-transparent" />
         </div>
       ) : (
         <div className={`w-full bg-gradient-to-br ${person.gradient} flex items-center justify-center font-bold text-white text-2xl`} style={{ aspectRatio: '3/4' }}>
@@ -674,7 +677,7 @@ function PeoplePage() {
         <Reveal>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#9a8aaa] mb-6">Faculty</h2>
         </Reveal>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {FACULTY.map((p, i) => (
             <Reveal key={i} delay={i * 80}>
               <PersonCard person={p} />
