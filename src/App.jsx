@@ -9,7 +9,7 @@ const FACULTY = [
     name: 'Irene Chen',
     affiliation: 'Assistant Professor, UCSF & UC Berkeley',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/irene.jpeg',
+    photo: '/images/team/irene.jpeg',
     gradient: 'from-violet-500 to-purple-600',
   },
   {
@@ -17,7 +17,7 @@ const FACULTY = [
     name: 'Monica Agrawal',
     affiliation: 'Assistant Professor',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/monica.jpg',
+    photo: '/images/team/monica.jpg',
     gradient: 'from-rose-500 to-pink-600',
   },
   {
@@ -25,7 +25,7 @@ const FACULTY = [
     name: 'Yulin Hswen',
     affiliation: 'Associate Professor, UC San Francisco',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/yulin.jpeg',
+    photo: '/images/team/yulin.jpeg',
     gradient: 'from-sky-500 to-blue-600',
   },
 ];
@@ -36,7 +36,7 @@ const STUDENTS = [
     name: 'Nitya Thakkar',
     affiliation: 'CS PhD, Stanford University',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/nitya.jpeg',
+    photo: '/images/team/nitya.jpeg',
     gradient: 'from-teal-500 to-emerald-600',
   },
   {
@@ -44,7 +44,7 @@ const STUDENTS = [
     name: 'Sarika Pasumarthy',
     affiliation: 'CS + Business, UC Berkeley',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/sarika_linkedin.png',
+    photo: '/images/team/sarika_linkedin.png',
     gradient: 'from-amber-500 to-orange-500',
   },
   {
@@ -52,7 +52,7 @@ const STUDENTS = [
     name: 'Sraavya Sambara',
     affiliation: 'CS + Biology, Harvard University',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/sraavya.jpeg',
+    photo: '/images/team/sraavya.jpeg',
     gradient: 'from-indigo-500 to-blue-600',
   },
   {
@@ -60,7 +60,7 @@ const STUDENTS = [
     name: 'Tanya Mehta',
     affiliation: 'MS CS, Columbia University',
     bio: '',
-    photo: import.meta.env.BASE_URL + 'images/team/tanya.jpeg',
+    photo: '/images/team/tanya.jpeg',
     gradient: 'from-fuchsia-500 to-pink-600',
   },
 ];
