@@ -453,37 +453,30 @@ function AboutPage({ setCurrentPage }) {
             <div className="flex flex-col gap-5">
               {[
                 {
-                  stat: '47 million',
-                  text: 'US women are currently in the menopause transition.',
+                  text: 'About 47 million US women are currently going through the menopause transition.',
                   cite: 'Harlow et al., American Journal of Epidemiology, 2012',
                 },
                 {
-                  stat: '<5%',
-                  text: 'of NIH funding has historically gone to menopause-related research.',
+                  text: 'Less than 5% of NIH funding has historically gone to menopause research.',
                   cite: 'Crandall et al., Menopause, 2023',
                 },
                 {
-                  stat: '85%',
-                  text: 'of women experience symptoms, yet most go untreated or undiagnosed.',
+                  text: '85% of women experience symptoms, yet most go untreated or undiagnosed.',
                   cite: 'Avis et al., SWAN Study, 2015',
                 },
                 {
-                  stat: '2/3',
-                  text: 'of all Alzheimer\'s cases occur in women, with menopause transition as a key risk window.',
+                  text: 'Two thirds of all Alzheimer\'s cases occur in women, and the menopause transition is a key risk window.',
                   cite: 'Mosconi et al., Neurology, 2021',
                 },
                 {
-                  stat: '10 years',
-                  text: 'earlier on average: Black women enter menopause earlier and report more severe symptoms than white women.',
+                  text: 'Black women enter menopause earlier and report more severe symptoms than white women on average.',
                   cite: 'Gold et al., SWAN Study, 2001',
                 },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
                   <div>
-                    <p className="text-[#5a4a6a] text-sm leading-relaxed">
-                      <span className="font-semibold text-[#1e1030]">{item.stat}</span> {item.text}
-                    </p>
+                    <p className="text-[#5a4a6a] text-sm leading-relaxed">{item.text}</p>
                     <p className="text-xs text-[#9a8aaa] mt-0.5 italic">{item.cite}</p>
                   </div>
                 </div>
