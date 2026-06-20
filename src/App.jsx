@@ -711,7 +711,7 @@ function NewsPage() {
       <FloralBloom className="absolute -top-12 -right-16 w-[240px] h-[240px] opacity-20 pointer-events-none select-none" />
       <Reveal>
         <p className="text-xs font-semibold uppercase tracking-widest text-purple-500 mb-4">News</p>
-        <h1 className="text-5xl font-semibold text-[#1e1030] mb-16 leading-tight">In the news</h1>
+        <h1 className="text-5xl font-semibold text-[#1e1030] mb-16 leading-tight">Menopause In the News</h1>
       </Reveal>
 
       <div className="flex flex-col divide-y divide-purple-100">
