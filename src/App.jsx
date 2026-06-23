@@ -94,6 +94,82 @@ const NEWS = [
   },
 ];
 
+// ─── IMPACT GRAPHIC ───────────────────────────────────────────────────────────
+
+function ImpactGraphic() {
+  const [hovered, setHovered] = useState(null);
+
+  const stats = [
+    { id: 0, x: 50, y: 18, value: '47M', label: 'US women in menopause transition', cite: 'Harlow et al., 2012', color: '#c084fc' },
+    { id: 1, x: 82, y: 42, value: '<5%', label: 'of NIH funding goes to menopause research', cite: 'Crandall et al., 2023', color: '#e07aaa' },
+    { id: 2, x: 68, y: 78, value: '85%', label: 'of women have symptoms, most untreated', cite: 'Avis et al., 2015', color: '#a78bfa' },
+    { id: 3, x: 32, y: 78, value: '2/3', label: 'of Alzheimer\'s cases occur in women', cite: 'Mosconi et al., 2021', color: '#f472b6' },
+    { id: 4, x: 18, y: 42, value: '↑ Race', label: 'Black women experience earlier onset & more severe symptoms', cite: 'Gold et al., 2001', color: '#c4b5fd' },
+  ];
+
+  const cx = 50, cy = 50, r = 22;
+
+  return (
+    <div className="relative w-full select-none">
+      <svg viewBox="0 0 100 100" className="w-full max-w-xs mx-auto block" style={{ overflow: 'visible' }}>
+        <defs>
+          <radialGradient id="centerGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#e9d5ff" />
+            <stop offset="100%" stopColor="#fce7f3" />
+          </radialGradient>
+        </defs>
+
+        {stats.map((s) => {
+          const sx = s.x, sy = s.y;
+          const dx = cx - sx, dy = cy - sy;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          const nx = dx / len, ny = dy / len;
+          const x1 = sx + nx * 7, y1 = sy + ny * 7;
+          const x2 = cx - nx * r, y2 = cy - ny * r;
+          return (
+            <line key={s.id} x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={hovered === s.id ? s.color : '#e4d4f4'} strokeWidth="0.4"
+              strokeDasharray="1.2 0.8" style={{ transition: 'stroke 0.2s' }} />
+          );
+        })}
+
+        <circle cx={cx} cy={cy} r={r} fill="url(#centerGrad)" stroke="#d8b4fe" strokeWidth="0.5" />
+        <text x={cx} y={cy - 3} textAnchor="middle" fontSize="5" fontFamily="Cormorant Garamond, Georgia, serif" fontWeight="600" fill="#1e1030">menopause</text>
+        <text x={cx} y={cy + 5} textAnchor="middle" fontSize="3.2" fontFamily="Inter, sans-serif" fill="#7c6a9a">& women's health</text>
+
+        {stats.map((s) => (
+          <g key={s.id} style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setHovered(s.id)}
+            onMouseLeave={() => setHovered(null)}>
+            <circle cx={s.x} cy={s.y} r="7"
+              fill={hovered === s.id ? s.color : '#fff'}
+              stroke={s.color} strokeWidth="0.6"
+              style={{ transition: 'fill 0.2s' }} />
+            <text x={s.x} y={s.y + 1.5} textAnchor="middle" fontSize="3.8"
+              fontFamily="Cormorant Garamond, Georgia, serif" fontWeight="700"
+              fill={hovered === s.id ? '#fff' : '#1e1030'}
+              style={{ transition: 'fill 0.2s', pointerEvents: 'none' }}>
+              {s.value}
+            </text>
+          </g>
+        ))}
+      </svg>
+
+      <div className="mt-4 min-h-[56px] text-center px-2">
+        {hovered !== null ? (
+          <div style={{ animation: 'fadeIn 0.15s ease' }}>
+            <p className="text-sm text-[#1e1030] leading-snug">{stats[hovered].label}</p>
+            <p className="text-xs text-[#9a8aaa] italic mt-1">{stats[hovered].cite}</p>
+          </div>
+        ) : (
+          <p className="text-xs text-[#b0a0c0]">hover a circle to explore</p>
+        )}
+      </div>
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+    </div>
+  );
+}
+
 // ─── HOOKS ────────────────────────────────────────────────────────────────────
 
 function useReveal() {
@@ -449,41 +525,9 @@ function AboutPage({ setCurrentPage }) {
 
         <Reveal delay={120}>
           <div>
-            <h2 className="text-xl font-semibold text-[#1e1030] mb-4">Why it matters</h2>
-            <div className="flex flex-col gap-5">
-              {[
-                {
-                  text: 'About 47 million US women are currently going through the menopause transition.',
-                  cite: 'Harlow et al., American Journal of Epidemiology, 2012',
-                },
-                {
-                  text: 'Less than 5% of NIH funding has historically gone to menopause research.',
-                  cite: 'Crandall et al., Menopause, 2023',
-                },
-                {
-                  text: '85% of women experience symptoms, yet most go untreated or undiagnosed.',
-                  cite: 'Avis et al., SWAN Study, 2015',
-                },
-                {
-                  text: 'Two thirds of all Alzheimer\'s cases occur in women, and the menopause transition is a key risk window.',
-                  cite: 'Mosconi et al., Neurology, 2021',
-                },
-                {
-                  text: 'Black women enter menopause earlier and report more severe symptoms than white women on average.',
-                  cite: 'Gold et al., SWAN Study, 2001',
-                },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0" />
-                  <div>
-                    <p className="text-[#5a4a6a] text-sm leading-relaxed">{item.text}</p>
-                    <p className="text-xs text-[#9a8aaa] mt-0.5 italic">{item.cite}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-10">
+            <h2 className="text-xl font-semibold text-[#1e1030] mb-6">Why it matters</h2>
+            <ImpactGraphic />
+            <div className="mt-8">
               <button onClick={() => setCurrentPage('people')}
                 className="inline-flex items-center gap-2 text-sm text-purple-600 font-semibold hover:text-purple-800 transition-colors">
                 Meet the team <ArrowRight size={13} />
@@ -745,20 +789,20 @@ function ContactPage() {
           <div>
             <h2 className="text-xl font-semibold text-[#1e1030] mb-3">Reach out</h2>
             <p className="text-[#5a4a6a] text-sm leading-relaxed mb-6">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+              Questions about our work, interest in collaborating, or just want to connect? Reach out to us directly.
             </p>
-            <a href="mailto:placeholder@berkeley.edu"
+            <a href="mailto:iychen@berkeley.edu"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-rose-400 hover:from-purple-700 hover:to-rose-500 text-white font-medium px-6 py-2.5 rounded-full text-sm transition-all shadow-sm">
-              <Mail size={14} /> Email us
+              <Mail size={14} /> iychen@berkeley.edu
             </a>
           </div>
         </Reveal>
 
         <Reveal delay={100}>
           <div>
-            <h2 className="text-xl font-semibold text-[#1e1030] mb-3">Collaborate</h2>
+            <h2 className="text-xl font-semibold text-[#1e1030] mb-3">Who we work with</h2>
             <p className="text-[#5a4a6a] text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.
+              We welcome collaborators across disciplines — clinicians who want to bring research questions from the bedside, researchers with complementary datasets or methods, and funders interested in supporting rigorous, equity-focused work on women's health. If any of that sounds like you, we'd love to hear from you.
             </p>
           </div>
         </Reveal>
