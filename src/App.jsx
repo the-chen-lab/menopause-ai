@@ -97,75 +97,83 @@ const NEWS = [
 // ─── IMPACT GRAPHIC ───────────────────────────────────────────────────────────
 
 function ImpactGraphic() {
-  const [hovered, setHovered] = useState(null);
+  const [active, setActive] = useState(null);
 
-  const stats = [
-    { id: 0, x: 50, y: 18, value: '47M', label: 'US women in menopause transition', cite: 'Harlow et al., 2012', color: '#c084fc' },
-    { id: 1, x: 82, y: 42, value: '<5%', label: 'of NIH funding goes to menopause research', cite: 'Crandall et al., 2023', color: '#e07aaa' },
-    { id: 2, x: 68, y: 78, value: '85%', label: 'of women have symptoms, most untreated', cite: 'Avis et al., 2015', color: '#a78bfa' },
-    { id: 3, x: 32, y: 78, value: '2/3', label: 'of Alzheimer\'s cases occur in women', cite: 'Mosconi et al., 2021', color: '#f472b6' },
-    { id: 4, x: 18, y: 42, value: '↑ Race', label: 'Black women experience earlier onset & more severe symptoms', cite: 'Gold et al., 2001', color: '#c4b5fd' },
+  const cards = [
+    {
+      id: 0,
+      value: '10 years',
+      label: 'The research gap',
+      detail: 'Most clinical guidelines for menopause are based on studies from the 1990s and early 2000s — before widespread EHR data, before social media, before modern ML.',
+      color: '#c084fc',
+      bg: '#f3e8ff',
+    },
+    {
+      id: 1,
+      value: '1 in 3',
+      label: 'Misdiagnosis rate',
+      detail: 'Menopause symptoms — hot flashes, mood changes, cognitive fog — are frequently attributed to anxiety, depression, or aging rather than the hormonal transition.',
+      color: '#e07aaa',
+      bg: '#fce7f3',
+    },
+    {
+      id: 2,
+      value: '60%+',
+      label: 'Underrepresented in trials',
+      detail: 'Women over 50 are routinely excluded from or underenrolled in clinical trials, meaning treatments are rarely validated for those in the menopause transition.',
+      color: '#a78bfa',
+      bg: '#ede9fe',
+    },
+    {
+      id: 3,
+      value: '7 years',
+      label: 'Average symptom duration',
+      detail: 'The menopause transition can last up to a decade, yet most research focuses on a single snapshot — missing how health trajectories change over time.',
+      color: '#f472b6',
+      bg: '#fdf2f8',
+    },
+    {
+      id: 4,
+      value: '3x',
+      label: 'Disparity in care',
+      detail: 'Black and Hispanic women are significantly less likely to receive hormone therapy or other treatments, even when symptoms are comparable to white women.',
+      color: '#818cf8',
+      bg: '#eef2ff',
+    },
+    {
+      id: 5,
+      value: '$28B',
+      label: 'Annual productivity loss',
+      detail: 'Menopause symptoms cost the US economy an estimated $28 billion a year in lost productivity — a figure almost entirely absent from health policy conversations.',
+      color: '#34d399',
+      bg: '#ecfdf5',
+    },
   ];
 
-  const cx = 50, cy = 50, r = 22;
-
   return (
-    <div className="relative w-full select-none">
-      <svg viewBox="0 0 100 100" className="w-full max-w-xs mx-auto block" style={{ overflow: 'visible' }}>
-        <defs>
-          <radialGradient id="centerGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#e9d5ff" />
-            <stop offset="100%" stopColor="#fce7f3" />
-          </radialGradient>
-        </defs>
-
-        {stats.map((s) => {
-          const sx = s.x, sy = s.y;
-          const dx = cx - sx, dy = cy - sy;
-          const len = Math.sqrt(dx * dx + dy * dy);
-          const nx = dx / len, ny = dy / len;
-          const x1 = sx + nx * 7, y1 = sy + ny * 7;
-          const x2 = cx - nx * r, y2 = cy - ny * r;
-          return (
-            <line key={s.id} x1={x1} y1={y1} x2={x2} y2={y2}
-              stroke={hovered === s.id ? s.color : '#e4d4f4'} strokeWidth="0.4"
-              strokeDasharray="1.2 0.8" style={{ transition: 'stroke 0.2s' }} />
-          );
-        })}
-
-        <circle cx={cx} cy={cy} r={r} fill="url(#centerGrad)" stroke="#d8b4fe" strokeWidth="0.5" />
-        <text x={cx} y={cy - 3} textAnchor="middle" fontSize="5" fontFamily="Cormorant Garamond, Georgia, serif" fontWeight="600" fill="#1e1030">menopause</text>
-        <text x={cx} y={cy + 5} textAnchor="middle" fontSize="3.2" fontFamily="Inter, sans-serif" fill="#7c6a9a">& women's health</text>
-
-        {stats.map((s) => (
-          <g key={s.id} style={{ cursor: 'pointer' }}
-            onMouseEnter={() => setHovered(s.id)}
-            onMouseLeave={() => setHovered(null)}>
-            <circle cx={s.x} cy={s.y} r="7"
-              fill={hovered === s.id ? s.color : '#fff'}
-              stroke={s.color} strokeWidth="0.6"
-              style={{ transition: 'fill 0.2s' }} />
-            <text x={s.x} y={s.y + 1.5} textAnchor="middle" fontSize="3.8"
-              fontFamily="Cormorant Garamond, Georgia, serif" fontWeight="700"
-              fill={hovered === s.id ? '#fff' : '#1e1030'}
-              style={{ transition: 'fill 0.2s', pointerEvents: 'none' }}>
-              {s.value}
-            </text>
-          </g>
+    <div className="w-full select-none">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {cards.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setActive(active === c.id ? null : c.id)}
+            className="text-left rounded-2xl border p-4 transition-all duration-200"
+            style={{
+              background: active === c.id ? c.bg : '#fff',
+              borderColor: active === c.id ? c.color : '#ede8f5',
+              boxShadow: active === c.id ? `0 4px 20px ${c.color}30` : 'none',
+            }}
+          >
+            <div className="text-2xl font-bold mb-1" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: c.color }}>{c.value}</div>
+            <div className="text-xs font-semibold text-[#1e1030] uppercase tracking-wide mb-2">{c.label}</div>
+            {active === c.id && (
+              <p className="text-xs text-[#5a4a6a] leading-relaxed" style={{ animation: 'fadeIn 0.2s ease' }}>{c.detail}</p>
+            )}
+          </button>
         ))}
-      </svg>
-
-      <div className="mt-4 min-h-[56px] text-center px-2">
-        {hovered !== null ? (
-          <div style={{ animation: 'fadeIn 0.15s ease' }}>
-            <p className="text-sm text-[#1e1030] leading-snug">{stats[hovered].label}</p>
-            <p className="text-xs text-[#9a8aaa] italic mt-1">{stats[hovered].cite}</p>
-          </div>
-        ) : (
-          <p className="text-xs text-[#b0a0c0]">hover a circle to explore</p>
-        )}
       </div>
-      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <p className="text-xs text-[#b0a0c0] mt-3 text-center">tap a card to learn more</p>
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   );
 }
@@ -358,9 +366,9 @@ function Footer({ setCurrentPage }) {
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[#9a8aaa] mb-3">Contact</p>
-            <p className="text-sm text-[#7a6a8a] leading-relaxed max-w-[180px]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            </p>
+            <a href="mailto:iychen@berkeley.edu" className="text-sm text-[#7a6a8a] hover:text-[#1e1030] transition-colors leading-relaxed">
+              iychen@berkeley.edu
+            </a>
           </div>
         </div>
       </div>
