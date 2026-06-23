@@ -642,51 +642,114 @@ function ComorbidityChart() {
   );
 }
 
-function OnsetAgeChart() {
-  const groups = [
-    { label: 'Hispanic / Latino', avg: 50.3, color: '#e0a8c8' },
-    { label: 'Indigenous / Other', avg: 50.5, color: '#d4a8d4' },
-    { label: 'Asian & Pacific Islander', avg: 51.0, color: '#b8a8e0' },
-    { label: 'Black', avg: 51.3, color: '#c4a8e0' },
-    { label: 'White', avg: 51.4, color: '#a8c4e0' },
+function ForestPlot() {
+  const rows = [
+    { label: 'Black',                  c2: -0.307, c2lo: -0.635, c2hi: 0.021,  c3: -0.246, c3lo: -0.582, c3hi: 0.090,  sig: 'ns' },
+    { label: 'Asian & Pacific Islander', c2: -2.056, c2lo: -2.838, c2hi: -1.273, c3: -2.018, c3lo: -2.809, c3hi: -1.227, sig: '***' },
+    { label: 'Indigenous / Other',      c2: -1.438, c2lo: -1.756, c2hi: -1.120, c3: -1.409, c3lo: -1.731, c3hi: -1.086, sig: '***' },
   ];
-  const minAge = 49.5, maxAge = 52.5;
-  const W = 320, rowH = 36, padL = 130, padR = 24, padT = 16, padB = 28;
-  const H = padT + groups.length * rowH + padB;
+  const minX = -3.2, maxX = 0.6;
+  const W = 320, rowH = 38, padL = 108, padR = 30, padT = 20, padB = 28;
+  const H = padT + rows.length * rowH + padB;
   const chartW = W - padL - padR;
-  const toX = v => padL + ((v - minAge) / (maxAge - minAge)) * chartW;
-  const tickVals = [50, 50.5, 51, 51.5, 52];
+  const toX = v => padL + ((v - minX) / (maxX - minX)) * chartW;
+  const ticks = [-3, -2, -1, 0];
+  const c2col = '#b8a8e0', c3col = '#e0a8c8';
 
   return (
     <div>
-      <p className="text-xs text-[#9a8aaa] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-        Average menopause onset age by race group
+      <p className="text-xs text-[#9a8aaa] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Adjusted onset age difference vs. White women (years)
       </p>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: 'visible' }}>
-        {tickVals.map(v => {
+        {ticks.map(v => {
           const x = toX(v);
           return (
             <g key={v}>
-              <line x1={x} x2={x} y1={padT} y2={padT + groups.length * rowH} stroke="#ede8f5" strokeWidth="0.5" />
-              <text x={x} y={padT + groups.length * rowH + 10} textAnchor="middle" fontSize="6.5" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
+              <line x1={x} x2={x} y1={padT - 4} y2={padT + rows.length * rowH} stroke="#ede8f5" strokeWidth={v === 0 ? 1 : 0.5} strokeDasharray={v === 0 ? '2 1.5' : undefined} />
+              <text x={x} y={padT + rows.length * rowH + 10} textAnchor="middle" fontSize="6.5" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
             </g>
           );
         })}
-        {groups.map((g, i) => {
-          const y = padT + i * rowH + rowH / 2;
-          const x = toX(g.avg);
+        <rect x={padL} y={padT - 4} width={toX(0) - padL} height={rows.length * rowH} fill="#fce7f3" fillOpacity="0.3" />
+        {rows.map((r, i) => {
+          const y2 = padT + i * rowH + rowH / 2 - 5;
+          const y3 = padT + i * rowH + rowH / 2 + 5;
           return (
             <g key={i}>
-              <line x1={padL} x2={x - 5} y1={y} y2={y} stroke="#e8e0f0" strokeWidth="0.8" strokeDasharray="2 1.5" />
-              <circle cx={x} cy={y} r="5" fill={g.color} fillOpacity="0.9" />
-              <text x={x + 8} y={y + 3} fontSize="6.5" fill="#7a6a8a" fontFamily="Inter, sans-serif" fontWeight="500">{g.avg}</text>
-              <text x={padL - 6} y={y + 3} textAnchor="end" fontSize="7" fill="#5a4a6a" fontFamily="Inter, sans-serif">{g.label}</text>
+              <text x={padL - 5} y={(y2 + y3) / 2 + 3} textAnchor="end" fontSize="7" fill="#5a4a6a" fontFamily="Inter, sans-serif">{r.label}</text>
+              <line x1={toX(r.c2lo)} x2={toX(r.c2hi)} y1={y2} y2={y2} stroke={c2col} strokeWidth="1.2" />
+              <circle cx={toX(r.c2)} cy={y2} r="3" fill={c2col} />
+              <line x1={toX(r.c3lo)} x2={toX(r.c3hi)} y1={y3} y2={y3} stroke={c3col} strokeWidth="1.2" />
+              <circle cx={toX(r.c3)} cy={y3} r="3" fill={c3col} />
+              <text x={padL + chartW + 4} y={y2 + 3} fontSize="6.5" fill={r.sig === 'ns' ? '#b0a0c0' : c2col} fontFamily="Inter, sans-serif">{r.sig}</text>
             </g>
           );
         })}
-        <text x={padL + chartW / 2} y={H - 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">avg onset age (years)</text>
+        <text x={padL + chartW / 2} y={H - 2} textAnchor="middle" fontSize="6" fill="#9a8aaa" fontFamily="Inter, sans-serif">← earlier onset than White women</text>
       </svg>
-      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>n = 37,548. Variation significant by ethnicity (p = 1e-21). Source: All of Us EHR.</p>
+      <div className="flex gap-4 mt-1">
+        {[['Cohort 2 (ICD)', c2col], ['Cohort 3 (+ surgical exclusion)', c3col]].map(([label, col]) => (
+          <div key={label} className="flex items-center gap-1">
+            <svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill={col} /></svg>
+            <span style={{ fontSize: '0.6rem', color: '#9a8aaa', fontFamily: 'Inter, sans-serif' }}>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CumulativeIncidenceChart() {
+  const logistic = (x, mu, sigma) => 1 / (1 + Math.exp(-(x - mu) / sigma));
+  const ages = Array.from({ length: 51 }, (_, i) => 40 + i * 0.5);
+  const groups = [
+    { label: 'White',                  mu: 51.5, sigma: 3.8, color: '#a78bfa', dash: '' },
+    { label: 'Black',                  mu: 51.3, sigma: 3.8, color: '#e07aaa', dash: '3 2' },
+    { label: 'Asian & Pacific Islander', mu: 49.5, sigma: 3.6, color: '#c084fc', dash: '5 2 1 2' },
+    { label: 'Indigenous / Other',      mu: 50.1, sigma: 3.7, color: '#d4a8d4', dash: '2 2' },
+  ];
+  const W = 320, H = 160, padL = 28, padR = 12, padT = 12, padB = 24;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+  const toX = age => padL + ((age - 40) / 25) * chartW;
+  const toY = p => padT + chartH - p * chartH;
+  const yTicks = [0, 0.25, 0.5, 0.75, 1.0];
+  const xTicks = [40, 45, 50, 55, 60, 65];
+
+  return (
+    <div className="mt-4">
+      <p className="text-xs text-[#9a8aaa] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Cumulative incidence of menopause onset by race group (Cohort 3)
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+        {yTicks.map(v => (
+          <g key={v}>
+            <line x1={padL} x2={padL + chartW} y1={toY(v)} y2={toY(v)} stroke="#ede8f5" strokeWidth="0.4" />
+            <text x={padL - 3} y={toY(v) + 3} textAnchor="end" fontSize="6" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
+          </g>
+        ))}
+        {xTicks.map(v => (
+          <g key={v}>
+            <text x={toX(v)} y={H - 4} textAnchor="middle" fontSize="6" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
+          </g>
+        ))}
+        {groups.map((g) => {
+          const pts = ages.map(a => `${toX(a)},${toY(logistic(a, g.mu, g.sigma))}`).join(' ');
+          return <polyline key={g.label} points={pts} fill="none" stroke={g.color} strokeWidth="1.5" strokeDasharray={g.dash || undefined} />;
+        })}
+        <line x1={padL} x2={padL} y1={padT} y2={padT + chartH} stroke="#d8d0e8" strokeWidth="0.5" />
+        <line x1={padL} x2={padL + chartW} y1={padT + chartH} y2={padT + chartH} stroke="#d8d0e8" strokeWidth="0.5" />
+        <text x={padL + chartW / 2} y={H - 1} textAnchor="middle" fontSize="6" fill="#9a8aaa" fontFamily="Inter, sans-serif">age at first menopause diagnosis</text>
+      </svg>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+        {groups.map(g => (
+          <div key={g.label} className="flex items-center gap-1">
+            <svg width="14" height="6"><line x1="0" y1="3" x2="14" y2="3" stroke={g.color} strokeWidth="1.8" strokeDasharray={g.dash || undefined} /></svg>
+            <span style={{ fontSize: '0.6rem', color: '#9a8aaa', fontFamily: 'Inter, sans-serif' }}>{g.label}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>Kruskal-Wallis p &lt; 0.0001 across all three cohorts. Source: All of Us Controlled Tier v8.</p>
     </div>
   );
 }
@@ -786,8 +849,9 @@ function ResearchPage() {
               </p>
               <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
             </div>
-            <div className="pt-2">
-              <OnsetAgeChart />
+            <div className="pt-2 flex flex-col gap-2">
+              <ForestPlot />
+              <CumulativeIncidenceChart />
             </div>
           </div>
         </Reveal>
