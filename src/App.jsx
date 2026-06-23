@@ -586,6 +586,111 @@ function AboutPage({ setCurrentPage }) {
   );
 }
 
+// ─── RESEARCH CHARTS ──────────────────────────────────────────────────────────
+
+function ComorbidityChart() {
+  const bars = [
+    { label: '18–35', n: '417', diff: 31.4 },
+    { label: '35–40', n: '674', diff: 17.1 },
+    { label: '40–50', n: '8,088', diff: 10.4 },
+    { label: '50–60', n: '13,530', diff: 9.8 },
+    { label: '60–70', n: '11,566', diff: 16.7 },
+    { label: '70–80', n: '3,234', diff: 18.6 },
+  ];
+  const max = 35;
+  const W = 320, H = 200, pad = { top: 16, right: 12, bottom: 48, left: 40 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  const barW = chartW / bars.length;
+  const colors = ['#c084fc','#d4a0f0','#b8a8e0','#e0a8c8','#c4a8e0','#d4b8f0'];
+
+  return (
+    <div>
+      <p className="text-xs text-[#9a8aaa] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Mean difference in conditions: women with menopause vs. age-matched controls
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: 'visible' }}>
+        {[0, 10, 20, 30].map(v => {
+          const y = pad.top + chartH - (v / max) * chartH;
+          return (
+            <g key={v}>
+              <line x1={pad.left} x2={pad.left + chartW} y1={y} y2={y} stroke="#ede8f5" strokeWidth="0.5" />
+              <text x={pad.left - 4} y={y + 3.5} textAnchor="end" fontSize="7" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
+            </g>
+          );
+        })}
+        {bars.map((b, i) => {
+          const bh = (b.diff / max) * chartH;
+          const x = pad.left + i * barW + barW * 0.15;
+          const bw = barW * 0.7;
+          const y = pad.top + chartH - bh;
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={bw} height={bh} fill={colors[i]} rx="2" fillOpacity="0.85" />
+              <text x={x + bw / 2} y={y - 3} textAnchor="middle" fontSize="6.5" fill="#7a6a8a" fontFamily="Inter, sans-serif" fontWeight="500">{b.diff}</text>
+              <text x={x + bw / 2} y={pad.top + chartH + 10} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">{b.label}</text>
+              <text x={x + bw / 2} y={pad.top + chartH + 18} textAnchor="middle" fontSize="5.5" fill="#b8aac8" fontFamily="Inter, sans-serif">n={b.n}</text>
+            </g>
+          );
+        })}
+        <line x1={pad.left} x2={pad.left} y1={pad.top} y2={pad.top + chartH} stroke="#d8d0e8" strokeWidth="0.5" />
+        <text x={pad.left - 24} y={pad.top + chartH / 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif" transform={`rotate(-90, ${pad.left - 24}, ${pad.top + chartH / 2})`}>mean difference</text>
+        <text x={pad.left + chartW / 2} y={H - 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">menopause age group</text>
+      </svg>
+      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>All differences p &lt; 0.001. Source: All of Us EHR, n = 203,247.</p>
+    </div>
+  );
+}
+
+function OnsetAgeChart() {
+  const groups = [
+    { label: 'Hispanic / Latino', avg: 50.3, color: '#e0a8c8' },
+    { label: 'Indigenous / Other', avg: 50.5, color: '#d4a8d4' },
+    { label: 'Asian & Pacific Islander', avg: 51.0, color: '#b8a8e0' },
+    { label: 'Black', avg: 51.3, color: '#c4a8e0' },
+    { label: 'White', avg: 51.4, color: '#a8c4e0' },
+  ];
+  const minAge = 49.5, maxAge = 52.5;
+  const W = 320, rowH = 36, padL = 130, padR = 24, padT = 16, padB = 28;
+  const H = padT + groups.length * rowH + padB;
+  const chartW = W - padL - padR;
+  const toX = v => padL + ((v - minAge) / (maxAge - minAge)) * chartW;
+  const tickVals = [50, 50.5, 51, 51.5, 52];
+
+  return (
+    <div>
+      <p className="text-xs text-[#9a8aaa] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Average menopause onset age by race group
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: 'visible' }}>
+        {tickVals.map(v => {
+          const x = toX(v);
+          return (
+            <g key={v}>
+              <line x1={x} x2={x} y1={padT} y2={padT + groups.length * rowH} stroke="#ede8f5" strokeWidth="0.5" />
+              <text x={x} y={padT + groups.length * rowH + 10} textAnchor="middle" fontSize="6.5" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
+            </g>
+          );
+        })}
+        {groups.map((g, i) => {
+          const y = padT + i * rowH + rowH / 2;
+          const x = toX(g.avg);
+          return (
+            <g key={i}>
+              <line x1={padL} x2={x - 5} y1={y} y2={y} stroke="#e8e0f0" strokeWidth="0.8" strokeDasharray="2 1.5" />
+              <circle cx={x} cy={y} r="5" fill={g.color} fillOpacity="0.9" />
+              <text x={x + 8} y={y + 3} fontSize="6.5" fill="#7a6a8a" fontFamily="Inter, sans-serif" fontWeight="500">{g.avg}</text>
+              <text x={padL - 6} y={y + 3} textAnchor="end" fontSize="7" fill="#5a4a6a" fontFamily="Inter, sans-serif">{g.label}</text>
+            </g>
+          );
+        })}
+        <text x={padL + chartW / 2} y={H - 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">avg onset age (years)</text>
+      </svg>
+      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>n = 37,548. Variation significant by ethnicity (p = 1e-21). Source: All of Us EHR.</p>
+    </div>
+  );
+}
+
 // ─── RESEARCH ─────────────────────────────────────────────────────────────────
 
 function ResearchPage() {
@@ -655,23 +760,8 @@ function ResearchPage() {
               </p>
               <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
             </div>
-            <div className="bg-purple-50/50 rounded-xl border border-purple-100 p-8">
-              <p className="text-sm font-semibold text-[#3d2a5a] mb-4">Key findings</p>
-              <ul className="flex flex-col gap-4">
-                {[
-                  'Women with menopause aged 18-35 had a mean of 54.1 conditions in the 2-year window vs. 22.7 in non-menopausal controls (difference = 31.4, p < 0.001).',
-                  'The gap persisted into older age: among women 60-70, menopausal women averaged 46.8 conditions vs. 30.1 for controls (p < 0.001).',
-                  'Early menopause showed the largest comorbidity disparity, consistent with it serving as a marker for accelerated health accumulation.',
-                  'Across 433,003 All of Us participants, females averaged 42.0 cumulative conditions in the 50-59 window vs. 33.1 for males (p < 0.001).',
-                  'Per-decade new conditions at ages 50-59: females 8.3 vs. males 4.5, the widest new-condition gap across the lifespan.',
-                  'Condition categories most elevated in menopausal women: GI symptoms, GU/reproductive disorders, metabolic/endocrine, cardiovascular, anxiety/PTSD, and depression/mood.',
-                ].map((finding, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-[#5a4a6a]">
-                    <span className="mt-2 w-1 h-1 rounded-full bg-rose-300 flex-shrink-0" />
-                    {finding}
-                  </li>
-                ))}
-              </ul>
+            <div className="pt-2">
+              <ComorbidityChart />
             </div>
           </div>
         </Reveal>
@@ -696,23 +786,8 @@ function ResearchPage() {
               </p>
               <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
             </div>
-            <div className="bg-purple-50/50 rounded-xl border border-purple-100 p-8">
-              <p className="text-sm font-semibold text-[#3d2a5a] mb-4">Key findings</p>
-              <ul className="flex flex-col gap-4">
-                {[
-                  'Across 37,548 women with menopause diagnoses in All of Us, average onset ranged from 50.3 years (Hispanic) to 51.4 years (Non-Hispanic White), with variation significant by ethnicity (p = 1e-21).',
-                  'In a refined cohort (n = 11,306), Asian & Pacific Islander individuals experienced onset ~2 years earlier than White individuals (p < 0.001), the largest adjusted difference observed.',
-                  'Indigenous/Other individuals experienced onset ~1.4 years earlier than White individuals (p < 0.001).',
-                  'The Black-White gap attenuated after adjusting for SES and behavioral factors, suggesting social determinants drive much of the observed difference.',
-                  'Current smoking was the only behavioral predictor that remained significant across all cohort definitions (~1.1 years earlier onset).',
-                  'Cohort construction choices (ICD codes, surgical exclusions, survey linkage) can shift group-level estimates, making methodological transparency critical.',
-                ].map((finding, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-[#5a4a6a]">
-                    <span className="mt-2 w-1 h-1 rounded-full bg-fuchsia-300 flex-shrink-0" />
-                    {finding}
-                  </li>
-                ))}
-              </ul>
+            <div className="pt-2">
+              <OnsetAgeChart />
             </div>
           </div>
         </Reveal>
