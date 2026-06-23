@@ -99,81 +99,119 @@ const NEWS = [
 function ImpactGraphic() {
   const [active, setActive] = useState(null);
 
-  const cards = [
+  const items = [
     {
       id: 0,
-      value: '10 years',
-      label: 'The research gap',
-      detail: 'Most clinical guidelines for menopause are based on studies from the 1990s and early 2000s — before widespread EHR data, before social media, before modern ML.',
-      color: '#c084fc',
-      bg: '#f3e8ff',
+      value: '10 yrs',
+      caption: 'Most clinical guidelines are built on data from the 1990s.',
+      note: 'Before EHR data, before social media, before modern ML.',
+      accent: '#c4a8e0',
+      rotate: '-2deg',
     },
     {
       id: 1,
       value: '1 in 3',
-      label: 'Misdiagnosis rate',
-      detail: 'Menopause symptoms — hot flashes, mood changes, cognitive fog — are frequently attributed to anxiety, depression, or aging rather than the hormonal transition.',
-      color: '#e07aaa',
-      bg: '#fce7f3',
+      caption: 'Women are misdiagnosed before menopause is considered.',
+      note: 'Symptoms are often attributed to anxiety, depression, or just aging.',
+      accent: '#e0a8c8',
+      rotate: '1.5deg',
     },
     {
       id: 2,
-      value: '60%+',
-      label: 'Underrepresented in trials',
-      detail: 'Women over 50 are routinely excluded from or underenrolled in clinical trials, meaning treatments are rarely validated for those in the menopause transition.',
-      color: '#a78bfa',
-      bg: '#ede9fe',
+      value: '7 years',
+      caption: 'The transition can last nearly a decade.',
+      note: 'Most research captures a single moment, not the full arc.',
+      accent: '#b8a8e0',
+      rotate: '-1deg',
     },
     {
       id: 3,
-      value: '7 years',
-      label: 'Average symptom duration',
-      detail: 'The menopause transition can last up to a decade, yet most research focuses on a single snapshot — missing how health trajectories change over time.',
-      color: '#f472b6',
-      bg: '#fdf2f8',
+      value: '3x',
+      caption: 'Black and Hispanic women are less likely to receive treatment.',
+      note: 'Even when symptoms are the same.',
+      accent: '#d4a8d4',
+      rotate: '2deg',
     },
     {
       id: 4,
-      value: '3x',
-      label: 'Disparity in care',
-      detail: 'Black and Hispanic women are significantly less likely to receive hormone therapy or other treatments, even when symptoms are comparable to white women.',
-      color: '#818cf8',
-      bg: '#eef2ff',
-    },
-    {
-      id: 5,
       value: '$28B',
-      label: 'Annual productivity loss',
-      detail: 'Menopause symptoms cost the US economy an estimated $28 billion a year in lost productivity — a figure almost entirely absent from health policy conversations.',
-      color: '#34d399',
-      bg: '#ecfdf5',
+      caption: 'Lost each year in productivity.',
+      note: 'A number nearly absent from health policy conversations.',
+      accent: '#a8c4e0',
+      rotate: '-1.5deg',
     },
   ];
 
   return (
-    <div className="w-full select-none">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {cards.map((c) => (
+    <div className="w-full relative" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif' }}>
+      <svg viewBox="0 0 400 320" className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }} aria-hidden="true">
+        <ellipse cx="60" cy="80" rx="38" ry="55" fill="#e8d5f5" fillOpacity="0.35" transform="rotate(-20 60 80)" />
+        <ellipse cx="60" cy="80" rx="38" ry="55" fill="#f0c8dc" fillOpacity="0.25" transform="rotate(40 60 80)" />
+        <ellipse cx="340" cy="240" rx="32" ry="48" fill="#d8c8f0" fillOpacity="0.3" transform="rotate(15 340 240)" />
+        <ellipse cx="340" cy="240" rx="32" ry="48" fill="#f5dce8" fillOpacity="0.2" transform="rotate(75 340 240)" />
+        <ellipse cx="200" cy="160" rx="22" ry="32" fill="#e8d5f5" fillOpacity="0.15" transform="rotate(-5 200 160)" />
+        <path d="M 60 120 Q 80 105 70 90" stroke="#c4a8e0" strokeWidth="0.8" fill="none" strokeOpacity="0.5" />
+        <path d="M 55 125 Q 45 108 58 98" stroke="#c4a8e0" strokeWidth="0.8" fill="none" strokeOpacity="0.5" />
+        <path d="M 340 200 Q 355 188 348 175" stroke="#e0a8c8" strokeWidth="0.8" fill="none" strokeOpacity="0.5" />
+        <path d="M 335 205 Q 322 192 332 180" stroke="#e0a8c8" strokeWidth="0.8" fill="none" strokeOpacity="0.5" />
+      </svg>
+
+      <div className="relative flex flex-col gap-8 py-6 px-2" style={{ zIndex: 1 }}>
+        {items.map((item, i) => (
           <button
-            key={c.id}
-            onClick={() => setActive(active === c.id ? null : c.id)}
-            className="text-left rounded-2xl border p-4 transition-all duration-200"
-            style={{
-              background: active === c.id ? c.bg : '#fff',
-              borderColor: active === c.id ? c.color : '#ede8f5',
-              boxShadow: active === c.id ? `0 4px 20px ${c.color}30` : 'none',
-            }}
+            key={item.id}
+            onClick={() => setActive(active === item.id ? null : item.id)}
+            className="text-left group w-full"
+            style={{ transform: `rotate(${item.rotate})`, transformOrigin: 'left center' }}
           >
-            <div className="text-2xl font-bold mb-1" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', color: c.color }}>{c.value}</div>
-            <div className="text-xs font-semibold text-[#1e1030] uppercase tracking-wide mb-2">{c.label}</div>
-            {active === c.id && (
-              <p className="text-xs text-[#5a4a6a] leading-relaxed" style={{ animation: 'fadeIn 0.2s ease' }}>{c.detail}</p>
+            <div className="flex items-baseline gap-5">
+              <span style={{
+                fontSize: i === 0 || i === 2 ? '3.2rem' : i === 3 ? '2.6rem' : '2.9rem',
+                lineHeight: 1,
+                color: active === item.id ? item.accent : '#1e1030',
+                fontStyle: 'italic',
+                fontWeight: 500,
+                transition: 'color 0.25s',
+                letterSpacing: '-0.01em',
+              }}>
+                {item.value}
+              </span>
+              <span style={{
+                fontSize: '0.78rem',
+                color: '#7a6a8a',
+                fontFamily: 'Inter, sans-serif',
+                fontStyle: 'normal',
+                lineHeight: 1.4,
+                maxWidth: '220px',
+              }}>
+                {item.caption}
+              </span>
+            </div>
+            {active === item.id && (
+              <p style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '0.72rem',
+                color: item.accent,
+                marginTop: '4px',
+                paddingLeft: 'calc(3.2rem + 20px)',
+                fontStyle: 'italic',
+                animation: 'fadeIn 0.2s ease',
+              }}>
+                {item.note}
+              </p>
             )}
+            <div style={{
+              height: '1px',
+              background: `linear-gradient(to right, ${item.accent}60, transparent)`,
+              marginTop: '10px',
+              width: active === item.id ? '100%' : '60%',
+              transition: 'width 0.3s ease',
+            }} />
           </button>
         ))}
       </div>
-      <p className="text-xs text-[#b0a0c0] mt-3 text-center">tap a card to learn more</p>
-      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.65rem', color: '#b0a0c0', textAlign: 'center', marginTop: '4px' }}>click to expand</p>
+      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   );
 }
@@ -533,7 +571,7 @@ function AboutPage({ setCurrentPage }) {
 
         <Reveal delay={120}>
           <div>
-            <h2 className="text-xl font-semibold text-[#1e1030] mb-6">Why it matters</h2>
+            <h2 className="text-xl font-semibold text-[#1e1030] mb-6" style={{ fontFamily: 'Cormorant Garamond, Georgia, serif', fontStyle: 'italic', fontWeight: 500, fontSize: '1.5rem' }}>a body overlooked</h2>
             <ImpactGraphic />
             <div className="mt-8">
               <button onClick={() => setCurrentPage('people')}
@@ -648,7 +686,7 @@ function ResearchPage() {
                 Menopause across populations
               </h2>
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                We study how race, ethnicity, and socioeconomic factors shape when menopause begins, and how much of that variation reflects true biological differences versus the conditions people live in. Most prior estimates of menopause onset come from studies conducted over two decades ago with limited sample diversity — we use All of Us to update those estimates with a much larger, more representative cohort.
+                We study how race, ethnicity, and socioeconomic factors shape when menopause begins, and how much of that variation reflects true biological differences versus the conditions people live in. Most prior estimates of menopause onset come from studies conducted over two decades ago with limited sample diversity we use All of Us to update those estimates with a much larger, more representative cohort.
               </p>
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
                 In a broad descriptive study (n = 37,548 with menopause-related EHR diagnoses, from 861,000 All of Us participants), we found that menopause onset timing varied significantly by ethnicity (p = 1e-21). Hispanic women had the earliest average onset (50.3 years), followed by Indigenous/Other (50.5), Asian & Pacific Islander (51.0), and Non-Hispanic White women (51.4). The pattern highlights greater racial and ethnic heterogeneity than many earlier studies reported.
@@ -810,7 +848,7 @@ function ContactPage() {
           <div>
             <h2 className="text-xl font-semibold text-[#1e1030] mb-3">Who we work with</h2>
             <p className="text-[#5a4a6a] text-sm leading-relaxed">
-              We welcome collaborators across disciplines — clinicians who want to bring research questions from the bedside, researchers with complementary datasets or methods, and funders interested in supporting rigorous, equity-focused work on women's health. If any of that sounds like you, we'd love to hear from you.
+              We welcome collaborators across disciplines clinicians who want to bring research questions from the bedside, researchers with complementary datasets or methods, and funders interested in supporting rigorous, equity-focused work on women's health. If any of that sounds like you, we'd love to hear from you.
             </p>
           </div>
         </Reveal>
