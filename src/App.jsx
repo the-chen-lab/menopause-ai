@@ -588,60 +588,6 @@ function AboutPage({ setCurrentPage }) {
 
 // ─── RESEARCH CHARTS ──────────────────────────────────────────────────────────
 
-function ComorbidityChart() {
-  const bars = [
-    { label: '18–35', n: '417', diff: 31.4 },
-    { label: '35–40', n: '674', diff: 17.1 },
-    { label: '40–50', n: '8,088', diff: 10.4 },
-    { label: '50–60', n: '13,530', diff: 9.8 },
-    { label: '60–70', n: '11,566', diff: 16.7 },
-    { label: '70–80', n: '3,234', diff: 18.6 },
-  ];
-  const max = 35;
-  const W = 320, H = 200, pad = { top: 16, right: 12, bottom: 48, left: 40 };
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top - pad.bottom;
-  const barW = chartW / bars.length;
-  const colors = ['#c084fc','#d4a0f0','#b8a8e0','#e0a8c8','#c4a8e0','#d4b8f0'];
-
-  return (
-    <div>
-      <p className="text-xs text-[#9a8aaa] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-        Mean difference in conditions: women with menopause vs. age-matched controls
-      </p>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: 'visible' }}>
-        {[0, 10, 20, 30].map(v => {
-          const y = pad.top + chartH - (v / max) * chartH;
-          return (
-            <g key={v}>
-              <line x1={pad.left} x2={pad.left + chartW} y1={y} y2={y} stroke="#ede8f5" strokeWidth="0.5" />
-              <text x={pad.left - 4} y={y + 3.5} textAnchor="end" fontSize="7" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
-            </g>
-          );
-        })}
-        {bars.map((b, i) => {
-          const bh = (b.diff / max) * chartH;
-          const x = pad.left + i * barW + barW * 0.15;
-          const bw = barW * 0.7;
-          const y = pad.top + chartH - bh;
-          return (
-            <g key={i}>
-              <rect x={x} y={y} width={bw} height={bh} fill={colors[i]} rx="2" fillOpacity="0.85" />
-              <text x={x + bw / 2} y={y - 3} textAnchor="middle" fontSize="6.5" fill="#7a6a8a" fontFamily="Inter, sans-serif" fontWeight="500">{b.diff}</text>
-              <text x={x + bw / 2} y={pad.top + chartH + 10} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">{b.label}</text>
-              <text x={x + bw / 2} y={pad.top + chartH + 18} textAnchor="middle" fontSize="5.5" fill="#b8aac8" fontFamily="Inter, sans-serif">n={b.n}</text>
-            </g>
-          );
-        })}
-        <line x1={pad.left} x2={pad.left} y1={pad.top} y2={pad.top + chartH} stroke="#d8d0e8" strokeWidth="0.5" />
-        <text x={pad.left - 24} y={pad.top + chartH / 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif" transform={`rotate(-90, ${pad.left - 24}, ${pad.top + chartH / 2})`}>mean difference</text>
-        <text x={pad.left + chartW / 2} y={H - 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">menopause age group</text>
-      </svg>
-      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>All differences p &lt; 0.001. Source: All of Us EHR, n = 203,247.</p>
-    </div>
-  );
-}
-
 function ForestPlot() {
   const rows = [
     { label: 'Black',                  c2: -0.307, c2lo: -0.635, c2hi: 0.021,  c3: -0.246, c3lo: -0.582, c3hi: 0.090,  sig: 'ns' },
@@ -754,6 +700,177 @@ function CumulativeIncidenceChart() {
   );
 }
 
+function DiseaseTrajectoryFig() {
+  const hazards = [
+    { label: 'Osteoporosis',            hr: 12.40, lo: 10.55, hi: 14.56, elevated: true },
+    { label: 'Atherosclerosis',         hr:  3.96, lo:  3.18, hi:  4.93, elevated: true },
+    { label: 'Lupus',                   hr:  2.61, lo:  1.46, hi:  4.69, elevated: true },
+    { label: 'Rheumatoid arthritis',    hr:  2.43, lo:  1.70, hi:  3.50, elevated: true },
+    { label: 'Mental/Behavioral',       hr:  2.38, lo:  2.22, hi:  2.56, elevated: true },
+    { label: "Alzheimer's",             hr:  1.80, lo:  1.04, hi:  3.09, elevated: true },
+    { label: 'Ischemic heart disease',  hr:  0.87, lo:  0.80, hi:  0.93, elevated: false },
+    { label: 'Stroke',                  hr:  0.79, lo:  0.69, hi:  0.91, elevated: false },
+    { label: 'Hypertension',            hr:  0.69, lo:  0.65, hi:  0.74, elevated: false },
+    { label: 'Type 2 diabetes',         hr:  0.45, lo:  0.41, hi:  0.50, elevated: false },
+    { label: 'Heart failure',           hr:  0.33, lo:  0.28, hi:  0.39, elevated: false },
+    { label: "Parkinson's",             hr:  0.30, lo:  0.20, hi:  0.45, elevated: false },
+  ];
+  const W = 320, rowH = 16, padL = 108, padR = 20, padT = 8, padB = 20;
+  const H = padT + hazards.length * rowH + padB;
+  const chartW = W - padL - padR;
+  const minX = 0, maxX = 16;
+  const toX = v => padL + (v / maxX) * chartW;
+  const elCol = '#c084fc', loCol = '#a8c4e0';
+  const ticks = [0, 2, 4, 6, 8, 10, 12, 14, 16];
+
+  const curves = [
+    {
+      title: 'Osteoporosis', wCol: '#e0a8c8', mCol: '#b8a8e0',
+      wPts: [[-10,0.3],[-8,0.5],[-6,0.8],[-4,1.2],[-2,2.0],[0,4.5],[2,9],[4,14],[6,19],[8,23],[10,27]],
+      mPts: [[-10,0.1],[-5,0.15],[0,0.2],[5,0.5],[10,1.0]],
+    },
+    {
+      title: 'Rheumatoid arthritis', wCol: '#e0a8c8', mCol: '#b8a8e0',
+      wPts: [[-10,0.05],[-5,0.1],[0,0.3],[2,0.5],[5,1.0],[10,1.75]],
+      mPts: [[-10,0.02],[0,0.05],[5,0.12],[10,0.25]],
+    },
+    {
+      title: 'Mental/Behavioral', wCol: '#e0a8c8', mCol: '#b8a8e0',
+      wPts: [[-10,4],[-8,5],[-6,6],[-4,7],[-2,8.5],[0,11],[2,15],[4,21],[6,28],[8,35],[10,42]],
+      mPts: [[-10,1.5],[-5,2.5],[0,4],[5,9],[10,17]],
+    },
+  ];
+  const cW = 86, cH = 60, cPadL = 14, cPadB = 12, cPadT = 14;
+
+  return (
+    <div>
+      <p className="text-xs text-[#9a8aaa] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Risk-adjusted hazard ratios vs. age-matched men after menopause onset
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: 'visible' }}>
+        {ticks.map(v => {
+          const x = toX(v);
+          return (
+            <g key={v}>
+              <line x1={x} x2={x} y1={padT} y2={padT + hazards.length * rowH} stroke={v === 1 ? '#c4b8e0' : '#ede8f5'} strokeWidth={v === 1 ? 0.8 : 0.4} strokeDasharray={v === 1 ? '2 1.5' : undefined} />
+              <text x={x} y={H - 4} textAnchor="middle" fontSize="5.5" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v === 0 ? '' : v}</text>
+            </g>
+          );
+        })}
+        <line x1={toX(1)} x2={toX(1)} y1={padT} y2={padT + hazards.length * rowH} stroke="#9a8aaa" strokeWidth="0.8" strokeDasharray="2 1.5" />
+        {hazards.map((h, i) => {
+          const y = padT + i * rowH + rowH / 2;
+          const col = h.elevated ? elCol : loCol;
+          return (
+            <g key={i}>
+              <text x={padL - 4} y={y + 3} textAnchor="end" fontSize="6.5" fill="#5a4a6a" fontFamily="Inter, sans-serif">{h.label}</text>
+              <line x1={toX(Math.max(h.lo, 0.01))} x2={toX(Math.min(h.hi, maxX))} y1={y} y2={y} stroke={col} strokeWidth="1" />
+              <circle cx={toX(h.hr)} cy={y} r="2.5" fill={col} />
+            </g>
+          );
+        })}
+        <text x={padL + chartW / 2} y={H - 1} textAnchor="middle" fontSize="6" fill="#9a8aaa" fontFamily="Inter, sans-serif">risk-adjusted hazard ratio</text>
+      </svg>
+
+      <p className="text-xs text-[#9a8aaa] mt-4 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Cumulative prevalence: women vs. age-matched men (years from menopause onset)
+      </p>
+      <div className="flex gap-1">
+        {curves.map((c) => {
+          const innerW = cW - cPadL - 4, innerH = cH - cPadT - cPadB;
+          const xs = c.wPts.map(p => p[0]), maxY = Math.max(...c.wPts.map(p => p[1]));
+          const toXc = x => cPadL + ((x + 10) / 20) * innerW;
+          const toYc = y => cPadT + innerH - (y / (maxY * 1.05)) * innerH;
+          const wPath = c.wPts.map(([x,y]) => `${toXc(x)},${toYc(y)}`).join(' ');
+          const mPath = c.mPts.map(([x,y]) => `${toXc(x)},${toYc(y)}`).join(' ');
+          return (
+            <svg key={c.title} viewBox={`0 0 ${cW} ${cH}`} style={{ flex: 1, overflow: 'visible' }}>
+              <line x1={cPadL} x2={cW - 4} y1={cPadT} y2={cPadT} stroke="#ede8f5" strokeWidth="0.3" />
+              <line x1={cPadL} x2={cW - 4} y1={cPadT + innerH} y2={cPadT + innerH} stroke="#d8d0e8" strokeWidth="0.4" />
+              <line x1={toXc(0)} x2={toXc(0)} y1={cPadT} y2={cPadT + innerH} stroke="#c4b8e0" strokeWidth="0.6" strokeDasharray="1.5 1" />
+              <polyline points={wPath} fill="none" stroke={c.wCol} strokeWidth="1.2" />
+              <polyline points={mPath} fill="none" stroke={c.mCol} strokeWidth="1.2" strokeDasharray="2 1" />
+              <text x={cPadL + innerW / 2} y={cPadT - 4} textAnchor="middle" fontSize="5.5" fill="#7a6a8a" fontFamily="Inter, sans-serif">{c.title}</text>
+              <text x={cPadL - 2} y={cPadT + innerH + 9} fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">-10</text>
+              <text x={toXc(0)} y={cPadT + innerH + 9} textAnchor="middle" fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">0</text>
+              <text x={cW - 4} y={cPadT + innerH + 9} textAnchor="end" fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">+10</text>
+            </svg>
+          );
+        })}
+      </div>
+      <div className="flex gap-4 mt-1">
+        {[['Women', '#e0a8c8', ''], ['Age-matched men', '#b8a8e0', '3 2']].map(([label, col, dash]) => (
+          <div key={label} className="flex items-center gap-1">
+            <svg width="14" height="6"><line x1="0" y1="3" x2="14" y2="3" stroke={col} strokeWidth="1.5" strokeDasharray={dash || undefined} /></svg>
+            <span style={{ fontSize: '0.6rem', color: '#9a8aaa', fontFamily: 'Inter, sans-serif' }}>{label}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>UCSF cohort, n = 33,444. Dashed vertical line = menopause onset.</p>
+      <p className="text-xs text-[#b8aac8] mt-2" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>Thakkar N, Patil R, Levy-Gantt R, Hswen Y, Agrawal M, Zou J, Chen IY. Characterization of menopause onset and associated disease risks using large-scale electronic health records. medRxiv. 2026.</p>
+    </div>
+  );
+}
+
+function SexMorbidityChart() {
+  const bins = [
+    { label: '18–29', male: 14.92, female: 20.88 },
+    { label: '30–39', male: 20.76, female: 28.72 },
+    { label: '40–49', male: 26.12, female: 35.05 },
+    { label: '50–59', male: 33.19, female: 42.10 },
+    { label: '60–69', male: 41.06, female: 48.76 },
+    { label: '70–79', male: 46.70, female: 52.81 },
+    { label: '80–89', male: 48.14, female: 53.78 },
+    { label: '90–99', male: 48.28, female: 53.86 },
+  ];
+  const W = 320, H = 200, pad = { top: 16, right: 12, bottom: 30, left: 26 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  const groupW = chartW / bins.length;
+  const barW = groupW * 0.32;
+  const max = 60;
+  const maleCol = '#b8a8e0', femaleCol = '#e0a8c8';
+  const toY = v => pad.top + chartH - (v / max) * chartH;
+
+  return (
+    <div>
+      <p className="text-xs text-[#9a8aaa] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+        Mean number of morbidities by age and sex
+      </p>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: 'visible' }}>
+        {[0, 20, 40, 60].map(v => (
+          <g key={v}>
+            <line x1={pad.left} x2={pad.left + chartW} y1={toY(v)} y2={toY(v)} stroke="#ede8f5" strokeWidth="0.5" />
+            <text x={pad.left - 4} y={toY(v) + 3} textAnchor="end" fontSize="6.5" fill="#b0a0c0" fontFamily="Inter, sans-serif">{v}</text>
+          </g>
+        ))}
+        {bins.map((b, i) => {
+          const cx = pad.left + i * groupW + groupW / 2;
+          return (
+            <g key={b.label}>
+              <rect x={cx - barW - 1} y={toY(b.male)} width={barW} height={pad.top + chartH - toY(b.male)} fill={maleCol} rx="1.5" />
+              <rect x={cx + 1} y={toY(b.female)} width={barW} height={pad.top + chartH - toY(b.female)} fill={femaleCol} rx="1.5" />
+              <text x={cx} y={pad.top + chartH + 10} textAnchor="middle" fontSize="6" fill="#9a8aaa" fontFamily="Inter, sans-serif">{b.label}</text>
+            </g>
+          );
+        })}
+        <line x1={pad.left} x2={pad.left} y1={pad.top} y2={pad.top + chartH} stroke="#d8d0e8" strokeWidth="0.5" />
+        <text x={pad.left + chartW / 2} y={H - 2} textAnchor="middle" fontSize="6.5" fill="#9a8aaa" fontFamily="Inter, sans-serif">age interval (years)</text>
+      </svg>
+      <div className="flex gap-4 mt-1">
+        {[['Male', maleCol], ['Female', femaleCol]].map(([label, col]) => (
+          <div key={label} className="flex items-center gap-1">
+            <svg width="10" height="10"><rect x="0" y="0" width="10" height="10" rx="2" fill={col} /></svg>
+            <span style={{ fontSize: '0.6rem', color: '#9a8aaa', fontFamily: 'Inter, sans-serif' }}>{label}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>All of Us Research Program, n = 344,038. Differences significant at every age interval (p &lt; 0.01).</p>
+      <p className="text-xs text-[#b8aac8] mt-2" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>Pasumarthy SL, Brubaker L, Chen IY, Hswen Y. Sex-differences in Morbidity Burden. Preprint, 2026.</p>
+    </div>
+  );
+}
+
 // ─── RESEARCH ─────────────────────────────────────────────────────────────────
 
 function ResearchPage() {
@@ -806,25 +923,51 @@ function ResearchPage() {
         <PetalDivider />
 
         <Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">Theme 02</p>
-              <h2 className="text-2xl font-semibold text-[#1e1030] mb-5 leading-tight">
-                Conditions co-occurring with menopause
-              </h2>
-              <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                We use EHR data to ask a basic but underexplored question: how does the health burden of women with menopause compare to women without it, and how does that compare to men? Across two studies using the All of Us Research Program, we find that women with menopause accumulate significantly more conditions than age-matched controls, and that the female-male health gap is widest precisely during the menopause transition window.
-              </p>
-              <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                In the first study (n = 203,247), we compared 37,514 women with a recorded menopause diagnosis to 165,733 age-matched women without one, tracking conditions within a 2-year window around menopause onset. The gap was largest among women who experienced early menopause (ages 18-35) and persisted across all age groups into later life.
-              </p>
-              <p className="text-[#5a4a6a] leading-relaxed mb-4">
-                In a second study (n = 433,003), we compared cumulative condition counts between females and males across the lifespan. Females had significantly more conditions than males at every age bin. The gap was sharpest in the 50-59 window, when females averaged 9.3 new unique conditions per decade vs. 4.5 for males.
-              </p>
-              <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-rose-400 mb-4">Theme 02</p>
+            <h2 className="text-2xl font-semibold text-[#1e1030] mb-5 leading-tight">
+              Conditions co-occurring with menopause
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+              <div>
+                <p className="text-[#5a4a6a] leading-relaxed mb-4">
+                  Menopause marks a turning point, not just a biological event. In this work, we ask how disease trajectories in women diverge from those of age-matched men in the years around menopause onset, using EHR data from two demographically distinct health systems: UCSF Health (n = 33,444) and the San Francisco Department of Public Health safety-net hospitals (n = 7,041), one of the most racially and socioeconomically diverse menopause cohorts in the literature.
+                </p>
+                <p className="text-[#5a4a6a] leading-relaxed mb-4">
+                  We apply an ICD-10 phenotyping algorithm to identify menopause onset, then use a two-stage NLP pipeline to extract symptom burden from unstructured clinical notes across 13 categories. Despite an estimated population prevalence of 90%, only 38.8% of patients had any documented menopause symptom in structured EHR fields, suggesting widespread underdocumentation.
+                </p>
+                <p className="text-[#5a4a6a] leading-relaxed mb-4">
+                  Women showed substantially elevated risk for osteoporosis (HR 12.40), rheumatoid arthritis (HR 2.43), and mental and behavioral disorders (HR 2.38) relative to age-matched men, with divergence beginning near the time of menopause onset. We also find that adverse pregnancy outcomes predict earlier menopause, with a significant dose-response relationship: women with 2 or more obstetric complications reached menopause about 1.3 years earlier than women with none.
+                </p>
+                <a href="https://www.medrxiv.org/content/10.64898/2026.05.08.26352769v1.full.pdf"
+                  target="_blank" rel="noopener noreferrer"
+                  className="text-sm text-purple-500 font-medium hover:text-purple-700 transition-colors">
+                  Preprint (medRxiv) &rarr;
+                </a>
+              </div>
+              <div className="pt-2">
+                <DiseaseTrajectoryFig />
+              </div>
             </div>
-            <div className="pt-2">
-              <ComorbidityChart />
+
+            <div className="mt-14 pt-10 border-t border-purple-100">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#9a8aaa] mb-4">Related work</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                <div>
+                  <p className="text-sm text-[#7a6a8a] leading-relaxed mb-3">
+                    In a separate study using the All of Us Research Program (n = 344,038), we found that women carry a significantly higher morbidity burden than men across every age group from 18 to 125 years (differences of 5.6–8.9 conditions, p &lt; 0.01). The gap was widest in midlife, ages 40–49, when women averaged 8.93 more morbidities than men — coinciding with the perimenopausal and menopausal transitions, and persisting, though narrowing, into older age.
+                  </p>
+                  <a href="/papers/sex-differences-morbidity-burden.pdf"
+                    target="_blank" rel="noopener noreferrer"
+                    className="text-sm text-purple-500 font-medium hover:text-purple-700 transition-colors">
+                    Preprint &rarr;
+                  </a>
+                </div>
+                <div className="pt-2">
+                  <SexMorbidityChart />
+                </div>
+              </div>
             </div>
           </div>
         </Reveal>
@@ -847,11 +990,16 @@ function ResearchPage() {
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
                 In a second, more methodologically rigorous study (n = 11,306), we used three progressively refined cohort definitions, adjusting for neighborhood deprivation, smoking, and alcohol use, and excluding surgically menopausal individuals, to test how robust these patterns are. Asian &amp; Pacific Islander individuals experienced onset about 2 years earlier than White individuals (p &lt; 0.001) and Indigenous/Other individuals about 1.4 years earlier (p &lt; 0.001) across all cohort definitions. The Black-White gap attenuated after covariate adjustment, suggesting socioeconomic and behavioral factors explain much of that difference. Current smoking was the only behavioral predictor that remained significant across models (~1.1 years earlier onset).
               </p>
-              <p className="text-sm text-purple-500 font-medium">[link to preprints]</p>
+              <a href="/papers/heterogeneity-race-ethnicity-menopause-onset.pdf"
+                target="_blank" rel="noopener noreferrer"
+                className="text-sm text-purple-500 font-medium hover:text-purple-700 transition-colors">
+                Preprint &rarr;
+              </a>
             </div>
             <div className="pt-2 flex flex-col gap-2">
               <ForestPlot />
               <CumulativeIncidenceChart />
+              <p className="text-xs text-[#b8aac8] mt-1" style={{ fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>Pasumarthy S, Hurley M, Chen IY, Thakkar N, Agrawal M, Hswen Y. Heterogeneity across race and ethnicity for menopause onset. Preprint, 2026.</p>
             </div>
           </div>
         </Reveal>
