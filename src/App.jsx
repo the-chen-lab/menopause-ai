@@ -784,17 +784,19 @@ function DiseaseTrajectoryFig() {
           const wPath = c.wPts.map(([x,y]) => `${toXc(x)},${toYc(y)}`).join(' ');
           const mPath = c.mPts.map(([x,y]) => `${toXc(x)},${toYc(y)}`).join(' ');
           return (
-            <svg key={c.title} viewBox={`0 0 ${cW} ${cH}`} style={{ flex: 1, overflow: 'visible' }}>
-              <line x1={cPadL} x2={cW - 4} y1={cPadT} y2={cPadT} stroke="#ede8f5" strokeWidth="0.3" />
-              <line x1={cPadL} x2={cW - 4} y1={cPadT + innerH} y2={cPadT + innerH} stroke="#d8d0e8" strokeWidth="0.4" />
-              <line x1={toXc(0)} x2={toXc(0)} y1={cPadT} y2={cPadT + innerH} stroke="#c4b8e0" strokeWidth="0.6" strokeDasharray="1.5 1" />
-              <polyline points={wPath} fill="none" stroke={c.wCol} strokeWidth="1.2" />
-              <polyline points={mPath} fill="none" stroke={c.mCol} strokeWidth="1.2" strokeDasharray="2 1" />
-              <text x={cPadL + innerW / 2} y={cPadT - 4} textAnchor="middle" fontSize="5.5" fill="#7a6a8a" fontFamily="Inter, sans-serif">{c.title}</text>
-              <text x={cPadL - 2} y={cPadT + innerH + 9} fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">-10</text>
-              <text x={toXc(0)} y={cPadT + innerH + 9} textAnchor="middle" fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">0</text>
-              <text x={cW - 4} y={cPadT + innerH + 9} textAnchor="end" fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">+10</text>
-            </svg>
+            <div key={c.title} className="flex-1 min-w-0">
+              <svg viewBox={`0 0 ${cW} ${cH}`} className="w-full h-auto block" style={{ overflow: 'visible' }}>
+                <line x1={cPadL} x2={cW - 4} y1={cPadT} y2={cPadT} stroke="#ede8f5" strokeWidth="0.3" />
+                <line x1={cPadL} x2={cW - 4} y1={cPadT + innerH} y2={cPadT + innerH} stroke="#d8d0e8" strokeWidth="0.4" />
+                <line x1={toXc(0)} x2={toXc(0)} y1={cPadT} y2={cPadT + innerH} stroke="#c4b8e0" strokeWidth="0.6" strokeDasharray="1.5 1" />
+                <polyline points={wPath} fill="none" stroke={c.wCol} strokeWidth="1.2" />
+                <polyline points={mPath} fill="none" stroke={c.mCol} strokeWidth="1.2" strokeDasharray="2 1" />
+                <text x={cPadL + innerW / 2} y={cPadT - 4} textAnchor="middle" fontSize="5.5" fill="#7a6a8a" fontFamily="Inter, sans-serif">{c.title}</text>
+                <text x={cPadL - 2} y={cPadT + innerH + 9} fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">-10</text>
+                <text x={toXc(0)} y={cPadT + innerH + 9} textAnchor="middle" fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">0</text>
+                <text x={cW - 4} y={cPadT + innerH + 9} textAnchor="end" fontSize="5" fill="#b0a0c0" fontFamily="Inter, sans-serif">+10</text>
+              </svg>
+            </div>
           );
         })}
       </div>
