@@ -992,10 +992,10 @@ function ResearchPage() {
               <p className="text-[#5a4a6a] leading-relaxed mb-4">
                 In a second, more methodologically rigorous study (n = 11,306), we used three progressively refined cohort definitions, adjusting for neighborhood deprivation, smoking, and alcohol use, and excluding surgically menopausal individuals, to test how robust these patterns are. Asian &amp; Pacific Islander individuals experienced onset about 2 years earlier than White individuals (p &lt; 0.001) and Indigenous/Other individuals about 1.4 years earlier (p &lt; 0.001) across all cohort definitions. The Black-White gap attenuated after covariate adjustment, suggesting socioeconomic and behavioral factors explain much of that difference. Current smoking was the only behavioral predictor that remained significant across models (~1.1 years earlier onset).
               </p>
-              <a href="/papers/heterogeneity-race-ethnicity-menopause-onset.pdf"
+              <a href="https://www.medrxiv.org/content/10.64898/2026.06.28.26356782v1"
                 target="_blank" rel="noopener noreferrer"
                 className="text-sm text-purple-500 font-medium hover:text-purple-700 transition-colors">
-                Preprint &rarr;
+                Preprint (medRxiv) &rarr;
               </a>
             </div>
             <div className="pt-2 flex flex-col gap-2">
